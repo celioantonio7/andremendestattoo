@@ -1,0 +1,725 @@
+import { seoMeta, siteUrl, structuredData } from "@/lib/seo";
+import { SurfaceSmoke } from "@/components/portfolio/SurfaceSmoke";
+import { createFileRoute } from "@tanstack/react-router";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  Check,
+  Copy,
+  MessageCircle,
+  PenTool,
+  ShieldCheck,
+  Brush,
+  Instagram,
+  SquarePlay,
+  X,
+} from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { art, bookingUrl, instagramUrl, nav } from "@/components/portfolio/content";
+import { ArtworkCarousel, Magnetic, Tilt } from "@/components/portfolio/Interactive";
+import { MenuTransition } from "@/components/portfolio/MenuTransition";
+import { navigateToSection } from "@/components/portfolio/sectionNavigation";
+import { useMotionOverlay, useSectionActivity } from "@/components/portfolio/motionActivity";
+import { MobileNavigation } from "@/components/portfolio/MobileNavigation";
+import { FloatingWhatsApp } from "@/components/portfolio/FloatingControls";
+import { useHeaderVisibility } from "@/components/portfolio/useHeaderVisibility";
+import { CinematicFooter } from "@/components/portfolio/CinematicFooter";
+import { DiveSequence } from "@/components/portfolio/DiveSequence";
+import { ReelShowcase } from "@/components/portfolio/ReelShowcase";
+import { Preloader } from "@/components/portfolio/Preloader";
+import { usePortfolioMotion } from "@/components/portfolio/usePortfolioMotion";
+
+const Atmosphere = lazy(() => import("@/components/portfolio/CinematicAtmosphere"));
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    links: [
+      ...(siteUrl ? [{ rel: "canonical", href: `${siteUrl}/` }] : []),
+      { rel: "preload", as: "image", href: "/art/andre-cutout.webp?v=5", fetchPriority: "high" },
+      { rel: "preload", as: "image", href: "/art/am-logo.webp" },
+    ],
+    meta: seoMeta,
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(structuredData) }],
+  }),
+  component: Index,
+});
+
+const stories = [
+  {
+    number: "01",
+    title: "Tatuagem como",
+    emphasis: "identidade.",
+    text: "Precisão, conceito e presença em cada traço.",
+    detail: "Uma ideia ganha forma quando encontra a sua própria linguagem.",
+  },
+  {
+    number: "02",
+    title: "Contraste que",
+    emphasis: "impressiona.",
+    text: "Luz e sombra. Força e delicadeza.",
+    detail:
+      "Realismo, oriental e blackwork. Diferentes técnicas, a mesma essência: arte que carrega história.",
+  },
+  {
+    number: "03",
+    title: "Da ideia à",
+    emphasis: "sua pele.",
+    text: "Cada projeto começa com uma conversa.",
+    detail: "Suas referências, sua intenção e uma composição pensada para você.",
+  },
+  {
+    number: "04",
+    title: "Precisão em",
+    emphasis: "cada detalhe.",
+    text: "Uma composição que acompanha as formas do corpo.",
+    detail: "Posição, proporção e contraste fazem parte da criação, do primeiro desenho à sessão.",
+  },
+  {
+    number: "05",
+    title: "Arte que",
+    emphasis: "permanece.",
+    text: "Sua história continua depois da sessão.",
+    detail:
+      "Orientações de cuidado para acompanhar cada etapa da cicatrização e preservar os detalhes.",
+  },
+];
+const styles = [
+  {
+    name: "Realismo",
+    src: "/art/lion.webp",
+    text: "Detalhes, expressão e profundidade que impressionam.",
+  },
+  {
+    name: "Oriental",
+    src: "/art/dragon.webp",
+    text: "Cultura, tradição e simbolismo em traços marcantes.",
+  },
+  {
+    name: "Blackwork",
+    src: "/art/mandala.webp",
+    text: "Contraste, força e formas que se destacam.",
+  },
+];
+const steps = [
+  {
+    name: "Briefing",
+    icon: MessageCircle,
+    text: "Sua ideia, suas referências e o que você quer expressar.",
+  },
+  {
+    name: "Criação",
+    icon: PenTool,
+    text: "Conceito e composição se encontram em um projeto autoral.",
+  },
+  { name: "Sessão", icon: Brush, text: "O momento de transformar o projeto em arte na pele." },
+  {
+    name: "Cuidados",
+    icon: ShieldCheck,
+    text: "Orientações para acompanhar a cicatrização da sua tatuagem.",
+  },
+];
+
+function SectionBackdrop({ left, right }: { left: string; right: string }) {
+  return (
+    <div className="section-backdrop" aria-hidden="true">
+      <img className="backdrop-left" src={left} alt="" width="512" height="512" loading="lazy" />
+      <img className="backdrop-right" src={right} alt="" width="512" height="512" loading="lazy" />
+    </div>
+  );
+}
+
+function SectionMeta({ label }: { label: string }) {
+  return (
+    <div className="section-meta">
+      <span>
+        ANDRÉ MENDES <i />
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+}
+function Energy({
+  className = "",
+  path = "M0 150 C250 180 350 5 650 70 S1000 200 1400 30",
+}: {
+  className?: string;
+  path?: string;
+}) {
+  return (
+    <svg
+      className={`section-energy ${className}`}
+      viewBox="0 0 1400 220"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path className="energy-track" d={path} />
+      <path className="energy-path" d={path} />
+    </svg>
+  );
+}
+
+function Index() {
+  const root = useRef<HTMLDivElement>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  const finishPreload = useCallback(() => setSceneReady(true), []);
+  const lightboxTrigger = useRef<HTMLElement | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("inicio");
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [brief, setBrief] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
+  const [canvasMounted, setCanvasMounted] = useState(false);
+  usePortfolioMotion(root, sceneReady);
+  useSectionActivity(root, sceneReady);
+  useMotionOverlay(lightbox !== null);
+  useHeaderVisibility(root, menuOpen);
+  useEffect(() => {
+    setCanvasMounted(true);
+    const visibility = () => {
+      if (root.current) root.current.dataset["hidden"] = String(document.hidden);
+    };
+    document.addEventListener("visibilitychange", visibility);
+    return () => document.removeEventListener("visibilitychange", visibility);
+  }, []);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: "-25% 0px -50% 0px" },
+    );
+    root.current
+      ?.querySelectorAll("main > section")
+      .forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+  const openArt = (index: number, trigger: HTMLElement) => {
+    lightboxTrigger.current = trigger;
+    setLightbox(index);
+  };
+  const currentArt = lightbox !== null ? art[lightbox] : undefined;
+
+  return (
+    <div ref={root} className="portfolio-site">
+      {!sceneReady && <Preloader onReady={finishPreload} />}
+      <FloatingWhatsApp />
+      <MenuTransition />
+      <a className="skip-link" href="#main">
+        Pular para o conteúdo
+      </a>
+      <div className="cinematic-atmosphere" aria-hidden="true">
+        {canvasMounted && sceneReady && (
+          <Suspense fallback={null}>
+            <Atmosphere />
+          </Suspense>
+        )}
+        <div className="atmosphere-vignette" />
+        <div className="film-grain" />
+      </div>
+      <header className="site-header">
+        <a className="brand" href="#inicio" aria-label="André Mendes — início">
+          <img src="/art/am-logo.webp" width="180" height="110" alt="AM" />
+        </a>
+        <nav aria-label="Navegação principal" className="main-nav" id="main-navigation">
+          {nav.map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className={activeSection === href?.slice(1) ? "active" : ""}
+              aria-current={activeSection === href?.slice(1) ? "location" : undefined}
+              onClick={(event) => {
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                setMenuOpen(false);
+                if (href) navigateToSection(href);
+              }}
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+        <a className="header-booking" href="#contato">
+          <CalendarDays size={17} />
+          <span>Agendar tattoo</span>
+          <ArrowRight size={19} />
+        </a>
+        <MobileNavigation open={menuOpen} onOpenChange={setMenuOpen} />
+      </header>
+
+      <main id="main">
+        <noscript>
+          <style>{`.embla-viewport{overflow-x:auto!important;touch-action:auto}.carousel-controls,.brief-copy,.preloader{display:none!important}`}</style>
+          <p className="no-script-note">
+            Explore a galeria arrastando a barra horizontal. As animações e a ampliação interativa
+            precisam de JavaScript.
+          </p>
+        </noscript>
+        <section id="inicio" className="hero-section" aria-labelledby="hero-title">
+          <SectionBackdrop left="/art/sculpture.webp" right="/art/hannya.webp" />
+          <SurfaceSmoke />
+          <div className="hero-halo" aria-hidden="true">
+            <div className="halo-depth">
+              <div className="halo-aura" />
+              <svg className="halo-orbit halo-orbit-outer" viewBox="0 0 600 600">
+                <defs>
+                  <linearGradient id="halo-light">
+                    <stop stopColor="#ffb65b" />
+                    <stop offset=".55" stopColor="#ed493b" />
+                    <stop offset="1" stopColor="#84dce9" />
+                  </linearGradient>
+                </defs>
+                <circle cx="300" cy="300" r="288" pathLength="100" />
+              </svg>
+              <svg className="halo-orbit halo-orbit-inner" viewBox="0 0 600 600">
+                <circle cx="300" cy="300" r="270" pathLength="100" />
+              </svg>
+              <span className="halo-glint halo-glint-one" />
+              <span className="halo-glint halo-glint-two" />
+            </div>
+          </div>
+          <div className="hero-topline">
+            <span className="tiny-label">TATUADOR ARTÍSTICO</span>
+            <span className="hero-edition">ARTE / TÉCNICA / IDENTIDADE</span>
+          </div>
+          <ArtworkCarousel hero />
+          <div className="hero-socials" aria-label="Redes e trabalhos">
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram de André Mendes"
+            >
+              <Instagram size={18} />
+            </a>
+            <a
+              href={bookingUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Conversar pelo WhatsApp"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <path
+                  d="M20.5 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.5-5a8.5 8.5 0 1 1 16-4Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="m8 7 1.5 3-1 1c1 2 2 3 4 4l1-1 3 1.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+              </svg>
+            </a>
+            <a href="#trabalhos-em-movimento" aria-label="Assistir aos trabalhos">
+              <SquarePlay size={18} />
+            </a>
+          </div>
+          <svg
+            className="hero-energy"
+            viewBox="0 0 1600 900"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path d="M-100 620 C150 380 400 460 680 270 S1200 50 1700 250" />
+            <path d="M-80 820 C480 1030 1170 500 1690 680" />
+          </svg>
+          <div className="hero-portrait">
+            <div className="hero-portrait-inner">
+              <img
+                src="/art/andre-cutout.webp?v=5"
+                alt="André Mendes, tatuador artístico"
+                width="1122"
+                height="1186"
+                fetchPriority="high"
+              />
+            </div>
+          </div>
+          <h1 id="hero-title" className="hero-name">
+            <span className="sr-only">André Mendes</span>
+            <span className="name-andre" aria-hidden="true">
+              <img src="/art/andre-lettering.webp" alt="" width="850" height="370" />
+            </span>
+            <span className="name-mendes" aria-hidden="true">
+              <img src="/art/mendes-lettering.webp" alt="" width="850" height="370" />
+            </span>
+          </h1>
+          <div className="hero-bottom">
+            <Magnetic href="#portfolio">Ver trabalhos</Magnetic>
+            <p className="hero-specialties">
+              REALISMO <b>/</b> BLACKWORK <b>/</b> ORIENTAL
+            </p>
+          </div>
+          <a href="#sobre" className="scroll-cue" aria-label="Conhecer André">
+            <span>CONTINUE A EXPERIÊNCIA</span>
+            <ArrowDown size={16} />
+          </a>
+        </section>
+
+        <section id="sobre" className="about-section section-shell" aria-labelledby="about-title">
+          <SectionBackdrop left="/art/sculpture.webp" right="/art/mandala.webp" />
+          <SectionMeta label="SOBRE / ESSÊNCIA" />
+          <div className="about-layout">
+            <div className="about-sticky">
+              <div className="about-heading" data-reveal="mask">
+                <span className="eyebrow">SOBRE O ARTISTA</span>
+                <h2 id="about-title">
+                  ANDRÉ
+                  <br />
+                  <em>MENDES</em>
+                </h2>
+              </div>
+              <div className="sculpture-wrap" data-parallax="35">
+                <img
+                  className="sculpture-art"
+                  src="/art/sculpture.webp"
+                  alt="Composição artística de escultura clássica e rosa"
+                  width="680"
+                  height="850"
+                  loading="lazy"
+                />
+                <div className="sculpture-halo" aria-hidden="true" />
+              </div>
+              <span className="about-signature">A ARTE É A NOSSA LINGUAGEM.</span>
+            </div>
+            <div className="story-stack">
+              {stories.map((story, i) => (
+                <article className={`story-card story-card-${i}`} key={story.number}>
+                  <div className="story-inner">
+                    <SurfaceSmoke />
+                    <span className="story-number">
+                      {story.number} <i />
+                    </span>
+                    <h3>
+                      {story.title}
+                      <br />
+                      <em>{story.emphasis}</em>
+                    </h3>
+                    <p className="story-lead">{story.text}</p>
+                    <p className="progressive-text">
+                      {story.detail.split(" ").map((word, index) => (
+                        <span className="reveal-word" key={index}>
+                          {word}{" "}
+                        </span>
+                      ))}
+                    </p>
+                    <span className="story-mark" aria-hidden="true">
+                      ///
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+          <Energy />
+        </section>
+
+        <section
+          id="estilos"
+          className="styles-section section-shell"
+          aria-labelledby="styles-title"
+        >
+          <SectionBackdrop left="/art/lion.webp" right="/art/dragon.webp" />
+          <SectionMeta label="ESTILOS / TÉCNICA / IDENTIDADE" />
+          <div className="editorial-heading">
+            <h2 id="styles-title" data-reveal="mask">
+              <span>ESTILOS DE</span>
+              <em>TATUAGEM</em>
+            </h2>
+            <p data-reveal="right">
+              Diferentes técnicas,
+              <br />
+              mesma essência:
+              <br />
+              arte que carrega história.
+              <span className="small-rule" />
+            </p>
+            <span className="brush-decoration" aria-hidden="true">
+              ///
+            </span>
+          </div>
+          <div className="style-grid">
+            {styles.map((style, i) => (
+              <div
+                className="style-entry"
+                data-reveal={i === 0 ? "left" : i === 2 ? "right" : "up"}
+                key={style.name}
+              >
+                <Tilt className={`style-card style-${i}`}>
+                  <a href="#portfolio" aria-label={`Explorar ${style.name}`}>
+                    <div className="style-image">
+                      <img
+                        src={style.src}
+                        alt={`Arte de referência — ${style.name}`}
+                        loading="lazy"
+                        width="512"
+                        height="768"
+                      />
+                    </div>
+                    <div className="style-info">
+                      <h3>{style.name}</h3>
+                      <span className="small-rule" />
+                      <p>{style.text}</p>
+                      <span className="round-button">
+                        <ArrowRight />
+                      </span>
+                    </div>
+                  </a>
+                </Tilt>
+              </div>
+            ))}
+          </div>
+          <div className="section-footnote">
+            <span>TRÊS LINGUAGENS. INFINITAS POSSIBILIDADES.</span>
+            <span aria-hidden="true">///</span>
+          </div>
+          <div className="ink-seam" aria-hidden="true">
+            <svg viewBox="0 0 1440 110" preserveAspectRatio="none">
+              <path
+                className="ink-seam-fill"
+                d="M0 45 C360 100 1080 0 1440 55 L1440 110 L0 110 Z"
+              />
+              <path className="ink-seam-edge" d="M0 45 C360 100 1080 0 1440 55" />
+            </svg>
+          </div>
+        </section>
+
+        <section
+          id="portfolio"
+          className="gallery-section section-shell"
+          aria-labelledby="gallery-title"
+        >
+          <SectionBackdrop left="/works/work-4.webp" right="/works/work-8.webp" />
+          <SectionMeta label="PORTFÓLIO / UNIVERSO VISUAL" />
+          <div className="editorial-heading">
+            <h2 id="gallery-title" data-reveal="mask">
+              <span>TRABALHOS</span>
+              <em>RECENTES</em>
+            </h2>
+            <p data-reveal="right">
+              Explore os detalhes.
+              <br />
+              Arraste para descobrir.
+              <span className="small-rule" />
+            </p>
+          </div>
+          <div className="gallery-stage">
+            <ArtworkCarousel onOpen={openArt} />
+          </div>
+          <div className="gallery-footer">
+            <span className="tiny-label">REALISMO / ORIENTAL / BLACKWORK</span>
+            <a href={instagramUrl} target="_blank" rel="noreferrer">
+              Trabalhos reais · @andremndes ↗
+            </a>
+          </div>
+          <ReelShowcase />
+          <DiveSequence />
+          <Energy path="M0 30 C450 0 200 230 680 150 S1110 10 1400 170" />
+        </section>
+
+        <section
+          id="processo"
+          className="process-section section-shell"
+          aria-labelledby="process-title"
+        >
+          <SectionBackdrop left="/art/machine.webp" right="/art/hannya.webp" />
+          <SectionMeta label="PROCESSO / DA IDEIA À PELE" />
+          <div className="editorial-heading">
+            <h2 id="process-title" data-reveal="mask">
+              <span>DO CONCEITO À</span>
+              <em>ARTE FINAL</em>
+            </h2>
+            <p data-reveal="right">
+              Uma experiência pensada
+              <br />
+              em cada etapa.
+              <span className="small-rule" />
+            </p>
+          </div>
+          <div className="process-grid">
+            <svg
+              className="process-line"
+              viewBox="0 0 1200 260"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                className="energy-track"
+                d="M0 80 L180 80 L400 180 L640 80 L900 180 L1200 130"
+              />
+              <path className="energy-path" d="M0 80 L180 80 L400 180 L640 80 L900 180 L1200 130" />
+            </svg>
+            {steps.map((step, i) => (
+              <article className={`process-card process-card-${i}`} key={step.name}>
+                <div className="process-surface">
+                  <SurfaceSmoke />
+                  <div className="step-top">
+                    <span>0{i + 1}</span>
+                    <step.icon size={30} strokeWidth={1.2} />
+                  </div>
+                  <h3>{step.name}</h3>
+                  <span className="small-rule" />
+                  <p>{step.text}</p>
+                  <span className="step-coordinate">AM — 0{i + 1}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p className="process-note" data-reveal="up">
+            Uma ideia sua. Uma construção em conjunto. <em>Uma arte única.</em>
+          </p>
+        </section>
+
+        <section
+          id="contato"
+          className="contact-section section-shell"
+          aria-labelledby="contact-title"
+        >
+          <SectionBackdrop left="/works/work-7.webp" right="/art/machine.webp" />
+          <SectionMeta label="CONTATO / AGENDAMENTO" />
+          <div className="contact-layout">
+            <div className="contact-copy">
+              <span className="eyebrow" data-reveal="up">
+                O PRÓXIMO TRAÇO COMEÇA AQUI.
+              </span>
+              <h2 id="contact-title" data-reveal="mask">
+                <span>CONTATO E</span>
+                <em>AGENDAMENTO</em>
+              </h2>
+              <p className="contact-question" data-reveal="up">
+                VAMOS CRIAR
+                <br />
+                <strong>
+                  ALGO <em>ÚNICO?</em>
+                </strong>
+              </p>
+              <Magnetic href={bookingUrl || "#briefing"}>
+                <CalendarDays size={22} />
+                {bookingUrl ? "Agendar sessão" : "Preparar minha ideia"}
+              </Magnetic>
+              <div id="briefing" className="briefing" data-reveal="up">
+                <label htmlFor="tattoo-idea">Conte sua ideia</label>
+                <p>Estilo, região do corpo, tamanho e referências.</p>
+                <textarea
+                  id="tattoo-idea"
+                  value={brief}
+                  onChange={(e) => setBrief(e.target.value)}
+                  placeholder="Quero transformar em tatuagem…"
+                  rows={3}
+                />
+                <button
+                  className="brief-copy"
+                  disabled={!brief.trim()}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(brief);
+                      setCopyStatus("Ideia copiada. Guarde para conversar com o artista.");
+                    } catch {
+                      setCopyStatus("Selecione o texto acima e copie sua ideia.");
+                    }
+                  }}
+                >
+                  {copyStatus.startsWith("Ideia copiada") ? (
+                    <Check size={17} />
+                  ) : (
+                    <Copy size={17} />
+                  )}
+                  Copiar briefing
+                  <ArrowRight size={17} />
+                </button>
+                <p className="booking-note">
+                  {bookingUrl
+                    ? "Envie sua ideia pelo canal de agendamento."
+                    : "Canal direto de agendamento em configuração."}
+                </p>
+                <p role="status" className="copy-status">
+                  {copyStatus}
+                </p>
+              </div>
+            </div>
+            <div className="contact-art" aria-hidden="true">
+              <div className="contact-orbit" />
+              <div data-parallax="45">
+                <img src="/art/machine.webp" alt="" loading="lazy" width="680" height="850" />
+              </div>
+              <span className="floating-coordinate">
+                PRECISÃO
+                <br />
+                EM CADA TRAÇO.
+              </span>
+            </div>
+          </div>
+          <Energy path="M0 160 C450 150 450 50 850 120 S1200 220 1400 20" />
+        </section>
+      </main>
+      <CinematicFooter />
+      <Dialog
+        open={lightbox !== null}
+        onOpenChange={(open) => {
+          if (!open) setLightbox(null);
+        }}
+      >
+        <DialogContent
+          className="art-lightbox"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            lightboxTrigger.current?.focus();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowRight") {
+              e.preventDefault();
+              setLightbox((index) => (index === null ? null : (index + 1) % art.length));
+            }
+            if (e.key === "ArrowLeft") {
+              e.preventDefault();
+              setLightbox((index) =>
+                index === null ? null : (index - 1 + art.length) % art.length,
+              );
+            }
+          }}
+        >
+          <DialogTitle>{currentArt?.name || "Arte em detalhe"}</DialogTitle>
+          <DialogDescription>
+            Trabalho de André Mendes · {currentArt?.style}. Registro publicado no perfil oficial do
+            artista.
+          </DialogDescription>
+          {currentArt && (
+            <img
+              className="lightbox-image"
+              src={currentArt.src}
+              alt={`${currentArt.name} em detalhe`}
+            />
+          )}
+          <a className="reel-original" href={currentArt?.source} target="_blank" rel="noreferrer">
+            Ver publicação original ↗
+          </a>
+          <div className="lightbox-navigation">
+            <button
+              className="round-button"
+              aria-label="Imagem anterior"
+              onClick={() =>
+                setLightbox((i) => (i === null ? null : (i - 1 + art.length) % art.length))
+              }
+            >
+              <ArrowLeft />
+            </button>
+            <span aria-live="polite">
+              {lightbox === null ? 0 : lightbox + 1} / {art.length}
+            </span>
+            <button
+              className="round-button"
+              aria-label="Próxima imagem"
+              onClick={() => setLightbox((i) => (i === null ? null : (i + 1) % art.length))}
+            >
+              <ArrowRight />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
