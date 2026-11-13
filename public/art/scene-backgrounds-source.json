@@ -1,0 +1,14 @@
+{
+  "generator": "OpenAI image generation",
+  "assets": [
+    {
+      "file": "process-workbench.webp",
+      "reference": "Processo_ Do Conceito à Arte Final-9.png",
+      "description": "Clean studio workbench scenery regenerated without interface elements or text; live content is overlaid in HTML."
+    },
+    {
+      "file": "styles-floor.webp",
+      "description": "Empty reflective floor and red/cyan smoke environment; real artist photographs remain separate HTML images."
+    }
+  ]
+}

@@ -40,17 +40,6 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
               .from(".name-mendes", { clipPath: "inset(0% 0% 0% 100%)", x: 35 }, 1)
               .from(".hero-carousel .card-reveal", { y: 45, opacity: 0, stagger: 0.08 }, 1.15)
               .from(".hero-bottom", { y: 16, opacity: 0, stagger: 0.08, duration: 0.7 }, 1.4);
-            // Recent work is readable immediately, even when scrolling past quickly.
-            gsap.fromTo(
-              ".gallery-stage",
-              { y: 16 },
-              {
-                y: 0,
-                duration: 0.22,
-                ease: "power2.out",
-                scrollTrigger: { trigger: ".gallery-stage", start: "top 105%", once: true },
-              },
-            );
             gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
               if (el.closest("#sobre")) return;
               if (el.classList.contains("style-entry")) {

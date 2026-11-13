@@ -379,7 +379,7 @@ export function ReelShowcase() {
       <div className="wobble-stage">
         <div className="motion-section-art" aria-hidden="true" />
         <div className="wobble-heading">
-          <h3>TRABALHOS EM MOVIMENTO</h3>
+          <h2 id="gallery-title">TRABALHOS RECENTES</h2>
           <p>Role ou arraste para explorar. Aponte para uma imagem para assistir.</p>
         </div>
         <canvas

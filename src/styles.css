@@ -1,3 +1,4 @@
+@import "./scene-backgrounds.css";
 @import "./card-borders.css";
 @import "./serpentine.css";
 @import "./typography.css";
@@ -6004,7 +6005,7 @@ img[src*="mendes-lettering"] {
   pointer-events: none;
   text-align: center;
 }
-.wobble-heading h3 {
+.wobble-heading h2 {
   font-family: var(--font-display);
   font-size: clamp(32px, 4vw, 62px);
   font-weight: 700;
@@ -6114,7 +6115,7 @@ img[src*="mendes-lettering"] {
   .wobble-heading {
     top: 10%;
   }
-  .wobble-heading h3 {
+  .wobble-heading h2 {
     font-size: 34px;
   }
   .wobble-heading p {

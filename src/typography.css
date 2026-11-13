@@ -91,7 +91,7 @@ a.glass-button {
   font-size: clamp(40px, 4.6vw, 68px) !important;
 }
 .gallery-section .editorial-heading h2,
-.wobble-heading h3,
+.wobble-heading h2,
 .mosaic-heading h3,
 .mosaic-finale h3,
 .footer-panel-name {

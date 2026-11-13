@@ -80,9 +80,6 @@ export function StyleCard({ style, index }: { style: Style; index: number }) {
             <strong>{style.name}</strong>
             <span>
               <span>{style.text}</span>
-              <i className="style-front-arrow">
-                <ArrowRight size={22} />
-              </i>
             </span>
           </span>
         </button>

@@ -24,18 +24,23 @@ try {
       await page.locator("link[rel=canonical]").getAttribute("href"),
       "https://celioantonio7.github.io/andremendestattoo/",
     );
-    const play = page.locator(".gallery-carousel .artwork-button").first();
-    await play.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(1000);
-    await play.hover({ force: true });
-    await page.waitForTimeout(300);
-    await play.click();
+    assert.equal(await page.locator(".gallery-carousel").count(), 0);
+    assert.equal(await page.locator(".portfolio-faq-item").count(), 5);
+    const canvas = page.locator(".wobble-canvas");
+    await canvas.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1100);
+    await canvas.focus();
+    await canvas.press("ArrowRight");
+    await page.waitForFunction(
+      () => document.querySelector(".wobble-reels")?.getAttribute("data-settled") === "true",
+    );
+    await canvas.press("Enter");
     const video = page.getByRole("dialog").locator("video");
     await video.waitFor();
     await page.waitForTimeout(900);
     assert.ok(
       await video.evaluate((element) => !element.paused && element.currentTime > 0),
-      "A user click starts video playback",
+      "A user action starts video playback",
     );
     await page.keyboard.press("Escape");
     const missingResponse = await page.goto(new URL("pagina-inexistente", base).href);

@@ -15,6 +15,8 @@ const criticalAssets = [
   "/art/mandala.webp",
   "/art/hannya.webp",
   "/art/machine.webp",
+  "/art/process-workbench.webp",
+  "/art/styles-floor.webp",
   "/art/sculpture.webp",
   "/works/detail-1.webp",
   "/works/detail-2.webp",

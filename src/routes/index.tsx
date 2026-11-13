@@ -4,7 +4,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowRight,
   CalendarDays,
   Check,
@@ -13,16 +12,13 @@ import {
   PenTool,
   ShieldCheck,
   Brush,
-  Instagram,
-  SquarePlay,
   X,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { art, bookingUrl, instagramUrl, nav } from "@/components/portfolio/content";
+import { bookingUrl, instagramUrl, nav } from "@/components/portfolio/content";
 import { ArtworkCarousel, Magnetic } from "@/components/portfolio/Interactive";
 import { MenuTransition } from "@/components/portfolio/MenuTransition";
 import { navigateToSection } from "@/components/portfolio/sectionNavigation";
-import { useMotionOverlay, useSectionActivity } from "@/components/portfolio/motionActivity";
+import { useSectionActivity } from "@/components/portfolio/motionActivity";
 import { MobileNavigation } from "@/components/portfolio/MobileNavigation";
 import { FloatingWhatsApp } from "@/components/portfolio/FloatingControls";
 import { useHeaderVisibility } from "@/components/portfolio/useHeaderVisibility";
@@ -30,6 +26,8 @@ import { CinematicFooter } from "@/components/portfolio/CinematicFooter";
 import { DiveSequence } from "@/components/portfolio/DiveSequence";
 import { ReelShowcase } from "@/components/portfolio/ReelShowcase";
 import { StyleCard } from "@/components/portfolio/StyleCard";
+import { BrandIcon } from "@/components/portfolio/BrandIcon";
+import { PortfolioFAQ } from "@/components/portfolio/PortfolioFAQ";
 import { FrameAccents } from "@/components/portfolio/FrameAccents";
 import { Preloader } from "@/components/portfolio/Preloader";
 import { useCardInteractions } from "@/components/portfolio/useCardInteractions";
@@ -217,23 +215,19 @@ function Index() {
   const root = useRef<HTMLDivElement>(null);
   const [sceneReady, setSceneReady] = useState(false);
   const finishPreload = useCallback(() => setSceneReady(true), []);
-  const lightboxTrigger = useRef<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
-  const [lightbox, setLightbox] = useState<number | null>(null);
   const [brief, setBrief] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
   const [canvasMounted, setCanvasMounted] = useState(false);
   usePortfolioMotion(root, sceneReady);
   useCardInteractions(root);
   useSectionActivity(root, sceneReady);
-  useMotionOverlay(lightbox !== null);
   useHeaderVisibility(root, menuOpen);
   useEffect(() => {
     setCanvasMounted(true);
     const visibility = () => {
       if (root.current) root.current.dataset["hidden"] = String(document.hidden);
-      if (document.hidden) document.querySelector<HTMLVideoElement>(".art-lightbox video")?.pause();
     };
     document.addEventListener("visibilitychange", visibility);
     return () => document.removeEventListener("visibilitychange", visibility);
@@ -252,11 +246,6 @@ function Index() {
       .forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, []);
-  const openArt = (index: number, trigger: HTMLElement) => {
-    lightboxTrigger.current = trigger;
-    setLightbox(index);
-  };
-  const currentArt = lightbox !== null ? art[lightbox] : undefined;
 
   return (
     <div ref={root} className="portfolio-site">
@@ -348,7 +337,7 @@ function Index() {
               rel="noreferrer"
               aria-label="Instagram de André Mendes"
             >
-              <Instagram size={18} />
+              <BrandIcon brand="instagram" size={18} />
             </a>
             <a
               href={bookingUrl}
@@ -356,21 +345,10 @@ function Index() {
               rel="noreferrer"
               aria-label="Conversar pelo WhatsApp"
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-                <path
-                  d="M20.5 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.5-5a8.5 8.5 0 1 1 16-4Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="m8 7 1.5 3-1 1c1 2 2 3 4 4l1-1 3 1.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-              </svg>
+              <BrandIcon brand="whatsapp" size={18} />
             </a>
             <a href="#trabalhos-em-movimento" aria-label="Assistir aos trabalhos">
-              <SquarePlay size={18} />
+              <BrandIcon brand="youtube" size={18} />
             </a>
           </div>
           <svg
@@ -491,7 +469,7 @@ function Index() {
           className="styles-section section-shell"
           aria-labelledby="styles-title"
         >
-          <SectionBackdrop left="/art/lion.webp" right="/art/dragon.webp" />
+          <div className="styles-floor-scene" aria-hidden="true" />
           <FrameAccents tone="red" />
           <SectionMeta label="ESTILOS / TÉCNICA / IDENTIDADE" />
           <div className="editorial-heading">
@@ -528,6 +506,23 @@ function Index() {
           </div>
         </section>
 
+        <section id="duvidas" className="faq-section section-shell" aria-labelledby="faq-title">
+          <FrameAccents tone="cyan" />
+          <SectionMeta label="DÚVIDAS / ANTES DA SUA TATUAGEM" />
+          <div className="editorial-heading">
+            <h2 id="faq-title">
+              <span>PERGUNTAS</span>
+              <em>FREQUENTES</em>
+            </h2>
+            <p>
+              Seu próximo passo,
+              <br />
+              com mais clareza.
+              <span className="small-rule" />
+            </p>
+          </div>
+          <PortfolioFAQ />
+        </section>
         <section
           id="portfolio"
           className="gallery-section section-shell"
@@ -535,28 +530,6 @@ function Index() {
         >
           <SectionBackdrop left="/works/work-4.webp" right="/works/work-8.webp" />
           <FrameAccents tone="cyan" />
-          <SectionMeta label="PORTFÓLIO / UNIVERSO VISUAL" />
-          <div className="editorial-heading">
-            <h2 id="gallery-title" data-reveal="mask">
-              <span>TRABALHOS</span>
-              <em>RECENTES</em>
-            </h2>
-            <p data-reveal="right">
-              Explore os detalhes.
-              <br />
-              Arraste para descobrir.
-              <span className="small-rule" />
-            </p>
-          </div>
-          <div className="gallery-stage">
-            <ArtworkCarousel onOpen={openArt} />
-          </div>
-          <div className="gallery-footer">
-            <span className="tiny-label">REALISMO / ORIENTAL / BLACKWORK</span>
-            <a href={instagramUrl} target="_blank" rel="noreferrer">
-              Trabalhos reais · @andremndes ↗
-            </a>
-          </div>
           <ReelShowcase />
           <DiveSequence />
           <Energy path="M0 30 C450 0 200 230 680 150 S1110 10 1400 170" />
@@ -567,7 +540,7 @@ function Index() {
           className="process-section section-shell"
           aria-labelledby="process-title"
         >
-          <SectionBackdrop left="/art/machine.webp" right="/art/hannya.webp" />
+          <div className="process-workbench" aria-hidden="true" />
           <FrameAccents tone="red" />
           <img className="process-monogram" src="/art/am-logo.webp" alt="" aria-hidden="true" />
           <SectionMeta label="PROCESSO / DA IDEIA À PELE" />
@@ -710,75 +683,6 @@ function Index() {
         </section>
       </main>
       <CinematicFooter />
-      <Dialog
-        open={lightbox !== null}
-        onOpenChange={(open) => {
-          if (!open) setLightbox(null);
-        }}
-      >
-        <DialogContent
-          className="art-lightbox"
-          onCloseAutoFocus={(event) => {
-            event.preventDefault();
-            lightboxTrigger.current?.focus();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowRight") {
-              e.preventDefault();
-              setLightbox((index) => (index === null ? null : (index + 1) % art.length));
-            }
-            if (e.key === "ArrowLeft") {
-              e.preventDefault();
-              setLightbox((index) =>
-                index === null ? null : (index - 1 + art.length) % art.length,
-              );
-            }
-          }}
-        >
-          <DialogTitle>{currentArt?.name || "Arte em detalhe"}</DialogTitle>
-          <DialogDescription>
-            Trabalho de André Mendes · {currentArt?.style}. Registro publicado no perfil oficial do
-            artista.
-          </DialogDescription>
-          {currentArt && (
-            <video
-              key={currentArt.video}
-              className="lightbox-image"
-              src={currentArt.video}
-              poster={currentArt.src}
-              aria-label={`${currentArt.name} em vídeo`}
-              controls
-              autoPlay
-              playsInline
-              preload="metadata"
-            />
-          )}
-          <a className="reel-original" href={currentArt?.source} target="_blank" rel="noreferrer">
-            Ver publicação original ↗
-          </a>
-          <div className="lightbox-navigation">
-            <button
-              className="round-button"
-              aria-label="Imagem anterior"
-              onClick={() =>
-                setLightbox((i) => (i === null ? null : (i - 1 + art.length) % art.length))
-              }
-            >
-              <ArrowLeft />
-            </button>
-            <span aria-live="polite">
-              {lightbox === null ? 0 : lightbox + 1} / {art.length}
-            </span>
-            <button
-              className="round-button"
-              aria-label="Próxima imagem"
-              onClick={() => setLightbox((i) => (i === null ? null : (i + 1) % art.length))}
-            >
-              <ArrowRight />
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
