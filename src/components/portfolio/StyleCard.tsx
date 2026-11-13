@@ -64,7 +64,7 @@ export function StyleCard({ style, index }: { style: Style; index: number }) {
           <span className="style-front-art">
             <img
               src={style.src}
-              alt={`Arte de referência — ${style.name}`}
+              alt={`Tatuagem de André Mendes — ${style.name}`}
               width="512"
               height="768"
               loading="eager"

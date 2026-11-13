@@ -104,14 +104,14 @@ const styles = [
   },
   {
     name: "Oriental",
-    src: "/art/dragon.webp",
+    src: "/works/detail-mask.webp",
     text: "Cultura, tradição e simbolismo em traços marcantes.",
     detail:
       "Máscaras, dragões e elementos inspirados na arte oriental. Cada composição combina movimento, contraste e símbolos escolhidos em conjunto com você.",
   },
   {
     name: "Blackwork",
-    src: "/art/mandala.webp",
+    src: "/works/style-blackwork.webp",
     text: "Contraste, força e formas que se destacam.",
     detail:
       "Preto sólido, espaços de pele e linhas que definem o desenho. Uma linguagem de contraste para composições ornamentais, geométricas e autorais.",

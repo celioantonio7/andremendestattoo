@@ -20,6 +20,7 @@ const criticalAssets = [
   "/works/detail-2.webp",
   "/works/detail-3.webp",
   "/works/detail-mask.webp",
+  "/works/style-blackwork.webp",
 ];
 
 export function Preloader({ onReady }: { onReady: () => void }) {
