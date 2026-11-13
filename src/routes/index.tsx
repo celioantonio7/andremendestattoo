@@ -9,7 +9,7 @@ import {
   CalendarDays,
   Check,
   Copy,
-  MessageCircle,
+  Pencil,
   PenTool,
   ShieldCheck,
   Brush,
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { art, bookingUrl, instagramUrl, nav } from "@/components/portfolio/content";
-import { ArtworkCarousel, Magnetic, Tilt } from "@/components/portfolio/Interactive";
+import { ArtworkCarousel, Magnetic } from "@/components/portfolio/Interactive";
 import { MenuTransition } from "@/components/portfolio/MenuTransition";
 import { navigateToSection } from "@/components/portfolio/sectionNavigation";
 import { useMotionOverlay, useSectionActivity } from "@/components/portfolio/motionActivity";
@@ -29,7 +29,10 @@ import { useHeaderVisibility } from "@/components/portfolio/useHeaderVisibility"
 import { CinematicFooter } from "@/components/portfolio/CinematicFooter";
 import { DiveSequence } from "@/components/portfolio/DiveSequence";
 import { ReelShowcase } from "@/components/portfolio/ReelShowcase";
+import { StyleCard } from "@/components/portfolio/StyleCard";
+import { FrameAccents } from "@/components/portfolio/FrameAccents";
 import { Preloader } from "@/components/portfolio/Preloader";
+import { useCardInteractions } from "@/components/portfolio/useCardInteractions";
 import { usePortfolioMotion } from "@/components/portfolio/usePortfolioMotion";
 
 const Atmosphere = lazy(() => import("@/components/portfolio/CinematicAtmosphere"));
@@ -50,6 +53,7 @@ export const Route = createFileRoute("/")({
 const stories = [
   {
     number: "01",
+    art: "/art/sculpture.webp",
     title: "Tatuagem como",
     emphasis: "identidade.",
     text: "Precisão, conceito e presença em cada traço.",
@@ -57,6 +61,7 @@ const stories = [
   },
   {
     number: "02",
+    art: "/art/lion.webp",
     title: "Contraste que",
     emphasis: "impressiona.",
     text: "Luz e sombra. Força e delicadeza.",
@@ -65,6 +70,7 @@ const stories = [
   },
   {
     number: "03",
+    art: "/art/dragon.webp",
     title: "Da ideia à",
     emphasis: "sua pele.",
     text: "Cada projeto começa com uma conversa.",
@@ -72,6 +78,7 @@ const stories = [
   },
   {
     number: "04",
+    art: "/art/mandala.webp",
     title: "Precisão em",
     emphasis: "cada detalhe.",
     text: "Uma composição que acompanha as formas do corpo.",
@@ -79,6 +86,7 @@ const stories = [
   },
   {
     number: "05",
+    art: "/art/machine.webp",
     title: "Arte que",
     emphasis: "permanece.",
     text: "Sua história continua depois da sessão.",
@@ -89,36 +97,80 @@ const stories = [
 const styles = [
   {
     name: "Realismo",
-    src: "/art/lion.webp",
+    src: "/art/realism-artist-reference.webp",
     text: "Detalhes, expressão e profundidade que impressionam.",
+    detail:
+      "Retratos, animais e composições com luz e sombra. O projeto parte das suas referências para construir volume, textura e uma leitura que acompanha o corpo.",
   },
   {
     name: "Oriental",
     src: "/art/dragon.webp",
     text: "Cultura, tradição e simbolismo em traços marcantes.",
+    detail:
+      "Máscaras, dragões e elementos inspirados na arte oriental. Cada composição combina movimento, contraste e símbolos escolhidos em conjunto com você.",
   },
   {
     name: "Blackwork",
     src: "/art/mandala.webp",
     text: "Contraste, força e formas que se destacam.",
+    detail:
+      "Preto sólido, espaços de pele e linhas que definem o desenho. Uma linguagem de contraste para composições ornamentais, geométricas e autorais.",
   },
 ];
+function TattooMachine({ size = 30, strokeWidth = 1.5 }: { size?: number; strokeWidth?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m13 30 15-16 9 9-15 16-9-9Zm14-17 5-5 10 10-5 5M31 8l3-3 11 11-3 3M13 31l-4 4 5 5 4-4M10 36l-5 7M20 22l-6-6 5-5 6 6M16 14l-5-4 4-4 5 5" />
+    </svg>
+  );
+}
+function HandCare({ size = 30, strokeWidth = 1.5 }: { size?: number; strokeWidth?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M26 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11ZM4 33l9-8 10 2c5 1 6 6 0 6h-6m5 0 13-8c5-3 8 2 4 5L25 42H12l-8-9Z" />
+    </svg>
+  );
+}
 const steps = [
   {
-    name: "Briefing",
-    icon: MessageCircle,
-    text: "Sua ideia, suas referências e o que você quer expressar.",
+    name: "Agendamento",
+    icon: CalendarDays,
+    text: "Entre em contato, tire suas dúvidas e escolha a melhor data e horário.",
   },
   {
-    name: "Criação",
-    icon: PenTool,
-    text: "Conceito e composição se encontram em um projeto autoral.",
+    name: "Conceito",
+    icon: Pencil,
+    text: "Alinhamos a ideia, referências e estilo para criar um projeto exclusivo para você.",
   },
-  { name: "Sessão", icon: Brush, text: "O momento de transformar o projeto em arte na pele." },
+  {
+    name: "Sessão",
+    icon: TattooMachine,
+    text: "Execução com técnica, segurança, higiene e total atenção aos detalhes.",
+  },
   {
     name: "Cuidados",
-    icon: ShieldCheck,
-    text: "Orientações para acompanhar a cicatrização da sua tatuagem.",
+    icon: HandCare,
+    text: "Orientações completas para uma cicatrização perfeita e duradoura.",
   },
 ];
 
@@ -173,6 +225,7 @@ function Index() {
   const [copyStatus, setCopyStatus] = useState("");
   const [canvasMounted, setCanvasMounted] = useState(false);
   usePortfolioMotion(root, sceneReady);
+  useCardInteractions(root);
   useSectionActivity(root, sceneReady);
   useMotionOverlay(lightbox !== null);
   useHeaderVisibility(root, menuOpen);
@@ -180,6 +233,7 @@ function Index() {
     setCanvasMounted(true);
     const visibility = () => {
       if (root.current) root.current.dataset["hidden"] = String(document.hidden);
+      if (document.hidden) document.querySelector<HTMLVideoElement>(".art-lightbox video")?.pause();
     };
     document.addEventListener("visibilitychange", visibility);
     return () => document.removeEventListener("visibilitychange", visibility);
@@ -362,6 +416,7 @@ function Index() {
 
         <section id="sobre" className="about-section section-shell" aria-labelledby="about-title">
           <SectionBackdrop left="/art/sculpture.webp" right="/art/mandala.webp" />
+          <FrameAccents tone="red" />
           <SectionMeta label="SOBRE / ESSÊNCIA" />
           <div className="about-layout">
             <div className="about-sticky">
@@ -373,7 +428,7 @@ function Index() {
                   <em>MENDES</em>
                 </h2>
               </div>
-              <div className="sculpture-wrap" data-parallax="35">
+              <div className="sculpture-wrap">
                 <img
                   className="sculpture-art"
                   src="/art/sculpture.webp"
@@ -391,13 +446,26 @@ function Index() {
                 <article className={`story-card story-card-${i}`} key={story.number}>
                   <div className="story-inner">
                     <SurfaceSmoke />
+                    <span
+                      className="story-art"
+                      aria-hidden="true"
+                      style={{
+                        backgroundImage: `linear-gradient(90deg, #070709ee 8%, #07070985 65%, #07070944), url("${story.art}")`,
+                      }}
+                    />
+                    <span className="story-border-light" aria-hidden="true" />
                     <span className="story-number">
                       {story.number} <i />
                     </span>
                     <h3>
                       {story.title}
                       <br />
-                      <em>{story.emphasis}</em>
+                      <em>
+                        {story.emphasis}
+                        <svg className="story-underline" viewBox="0 0 320 24" aria-hidden="true">
+                          <path pathLength="1" d="M5 19 Q145 -1 311 10 M55 22 Q175 8 290 15" />
+                        </svg>
+                      </em>
                     </h3>
                     <p className="story-lead">{story.text}</p>
                     <p className="progressive-text">
@@ -424,6 +492,7 @@ function Index() {
           aria-labelledby="styles-title"
         >
           <SectionBackdrop left="/art/lion.webp" right="/art/dragon.webp" />
+          <FrameAccents tone="red" />
           <SectionMeta label="ESTILOS / TÉCNICA / IDENTIDADE" />
           <div className="editorial-heading">
             <h2 id="styles-title" data-reveal="mask">
@@ -449,42 +518,13 @@ function Index() {
                 data-reveal={i === 0 ? "left" : i === 2 ? "right" : "up"}
                 key={style.name}
               >
-                <Tilt className={`style-card style-${i}`}>
-                  <a href="#portfolio" aria-label={`Explorar ${style.name}`}>
-                    <div className="style-image">
-                      <img
-                        src={style.src}
-                        alt={`Arte de referência — ${style.name}`}
-                        loading="lazy"
-                        width="512"
-                        height="768"
-                      />
-                    </div>
-                    <div className="style-info">
-                      <h3>{style.name}</h3>
-                      <span className="small-rule" />
-                      <p>{style.text}</p>
-                      <span className="round-button">
-                        <ArrowRight />
-                      </span>
-                    </div>
-                  </a>
-                </Tilt>
+                <StyleCard style={style} index={i} />
               </div>
             ))}
           </div>
           <div className="section-footnote">
             <span>TRÊS LINGUAGENS. INFINITAS POSSIBILIDADES.</span>
             <span aria-hidden="true">///</span>
-          </div>
-          <div className="ink-seam" aria-hidden="true">
-            <svg viewBox="0 0 1440 110" preserveAspectRatio="none">
-              <path
-                className="ink-seam-fill"
-                d="M0 45 C360 100 1080 0 1440 55 L1440 110 L0 110 Z"
-              />
-              <path className="ink-seam-edge" d="M0 45 C360 100 1080 0 1440 55" />
-            </svg>
           </div>
         </section>
 
@@ -494,6 +534,7 @@ function Index() {
           aria-labelledby="gallery-title"
         >
           <SectionBackdrop left="/works/work-4.webp" right="/works/work-8.webp" />
+          <FrameAccents tone="cyan" />
           <SectionMeta label="PORTFÓLIO / UNIVERSO VISUAL" />
           <div className="editorial-heading">
             <h2 id="gallery-title" data-reveal="mask">
@@ -527,6 +568,8 @@ function Index() {
           aria-labelledby="process-title"
         >
           <SectionBackdrop left="/art/machine.webp" right="/art/hannya.webp" />
+          <FrameAccents tone="red" />
+          <img className="process-monogram" src="/art/am-logo.webp" alt="" aria-hidden="true" />
           <SectionMeta label="PROCESSO / DA IDEIA À PELE" />
           <div className="editorial-heading">
             <h2 id="process-title" data-reveal="mask">
@@ -559,19 +602,28 @@ function Index() {
                   <SurfaceSmoke />
                   <div className="step-top">
                     <span>0{i + 1}</span>
-                    <step.icon size={30} strokeWidth={1.2} />
+                    <span className="step-icon-frame">
+                      <svg
+                        className="icon-brackets"
+                        viewBox="0 0 64 64"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path d="M0 17 V7 L7 0 H17 M47 0 H57 L64 7 V17 M64 47 V57 L57 64 H47 M17 64 H7 L0 57 V47" />
+                      </svg>
+                      <step.icon size={42} strokeWidth={1.5} />
+                    </span>
                   </div>
                   <h3>{step.name}</h3>
                   <span className="small-rule" />
                   <p>{step.text}</p>
-                  <span className="step-coordinate">AM — 0{i + 1}</span>
+                  <span className="step-coordinate" aria-hidden="true">
+                    <ArrowRight size={25} />
+                  </span>
                 </div>
               </article>
             ))}
           </div>
-          <p className="process-note" data-reveal="up">
-            Uma ideia sua. Uma construção em conjunto. <em>Uma arte única.</em>
-          </p>
         </section>
 
         <section
@@ -580,6 +632,7 @@ function Index() {
           aria-labelledby="contact-title"
         >
           <SectionBackdrop left="/works/work-7.webp" right="/art/machine.webp" />
+          <FrameAccents tone="gold" />
           <SectionMeta label="CONTATO / AGENDAMENTO" />
           <div className="contact-layout">
             <div className="contact-copy">
@@ -688,10 +741,16 @@ function Index() {
             artista.
           </DialogDescription>
           {currentArt && (
-            <img
+            <video
+              key={currentArt.video}
               className="lightbox-image"
-              src={currentArt.src}
-              alt={`${currentArt.name} em detalhe`}
+              src={currentArt.video}
+              poster={currentArt.src}
+              aria-label={`${currentArt.name} em vídeo`}
+              controls
+              autoPlay
+              playsInline
+              preload="metadata"
             />
           )}
           <a className="reel-original" href={currentArt?.source} target="_blank" rel="noreferrer">

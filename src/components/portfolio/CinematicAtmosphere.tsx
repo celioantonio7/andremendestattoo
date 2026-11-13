@@ -22,10 +22,10 @@ void main(){
  float f=fbm(p+q*3.+vec2(0.,-t));
  float wisps=smoothstep(.22,.66,f)*smoothstep(.08,.52,fbm(p*1.5+q-t));
  float edge=pow(16.*uv.x*uv.y*(1.-uv.x)*(1.-uv.y),.65);
- vec3 red=vec3(.62,.055,.025),amber=vec3(.9,.43,.12),cyan=vec3(.04,.42,.52);
+ vec3 red=vec3(.95,.005,.02),amber=vec3(.6,.025,.02),cyan=vec3(.0,.72,.9);
  vec3 warm=mix(red,amber,clamp(q.x*1.8,0.,1.));
- vec3 col=mix(warm,cyan,smoothstep(.35,.95,uv.x)*.58);
- float alpha=clamp(wisps*.85*mix(.45,1.,edge)*intensity,0.,.9);
+ vec3 col=mix(warm,cyan,smoothstep(.25,.85,uv.x)*.85);
+ float alpha=clamp(wisps*1.12*mix(.6,1.,edge)*intensity,0.,.9);
  float ember=pow(max(0.,noise(uv*vec2(220.,140.)+vec2(0.,-time*.11))-.86)*7.,5.);
  col+=vec3(1.,.42,.09)*ember*.1;
  gl_FragColor=vec4(col*alpha,alpha);

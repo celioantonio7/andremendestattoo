@@ -11,21 +11,30 @@ export function MenuTransition() {
       running = false;
     let release = () => {};
     let animation: { kill: () => void } | undefined;
+    let navigationFrame = 0;
     const navigate = async (event: Event) => {
       const href = (event as CustomEvent<string>).detail;
       if (!/^#[\w-]+$/.test(href) || running) return;
       const target = document.querySelector<HTMLElement>(href);
       if (!target) return;
+      let pinnedStart: number | undefined;
       const jump = () => {
         history.pushState(history.state, "", href);
-        const padding =
-          parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-        window.scrollTo({
-          top: target.getBoundingClientRect().top + scrollY - padding,
-          behavior: "instant",
+        const place = () => {
+          const padding =
+            parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+          window.scrollTo({
+            top: (pinnedStart ?? target.getBoundingClientRect().top + scrollY) - padding,
+            behavior: "instant",
+          });
+          target.tabIndex = -1;
+          target.focus({ preventScroll: true });
+        };
+        // TanStack restores hash positions after pushState. Place the pinned scene
+        // after that restoration, while the transition curtain still covers it.
+        navigationFrame = requestAnimationFrame(() => {
+          navigationFrame = requestAnimationFrame(place);
         });
-        target.tabIndex = -1;
-        target.focus({ preventScroll: true });
       };
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         jump();
@@ -35,7 +44,15 @@ export function MenuTransition() {
       release = holdBackgroundMotion();
       root.current?.setAttribute("data-active", "true");
       try {
-        const { gsap } = await import("gsap");
+        const [{ gsap }, { ScrollTrigger }] = await Promise.all([
+          import("gsap"),
+          import("gsap/ScrollTrigger"),
+        ]);
+        // A pinned section's DOM rectangle includes its current pin translation.
+        // Navigate to the measured scene start, including when returning from below it.
+        pinnedStart = ScrollTrigger.getAll().find(
+          (trigger) => trigger.trigger === target && trigger.pin,
+        )?.start;
         if (disposed) return;
         const progress = { value: 0 };
         const draw = (leaving: boolean) => {
@@ -83,6 +100,7 @@ export function MenuTransition() {
     return () => {
       disposed = true;
       animation?.kill();
+      cancelAnimationFrame(navigationFrame);
       release();
       window.removeEventListener(navigationEvent, navigate);
     };

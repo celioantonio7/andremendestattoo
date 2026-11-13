@@ -1,0 +1,16 @@
+/* These compositor animations have their own visibility lifecycle and keep their phase. */
+.footer-live-ribbons .ribbon-track {
+  animation: none !important;
+  will-change: transform;
+}
+.footer-live-ribbons .ribbon-track > span {
+  flex-shrink: 0;
+}
+.portfolio-site .cinematic-footer {
+  background: radial-gradient(ellipse at 50% 65%, #8c122514, transparent 70%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-live-ribbons .ribbon-track {
+    will-change: auto;
+  }
+}

@@ -33,3 +33,8 @@ dist-ssr
 
 # GitHub Pages build
 dist-pages
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example

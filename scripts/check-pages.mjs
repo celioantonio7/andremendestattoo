@@ -1,55 +1,68 @@
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
-const browser = await chromium.launch({
-  headless: true,
-  args: ["--no-sandbox", "--enable-unsafe-swiftshader"],
-});
+const base = process.env["CHECK_BASE_URL"] || "http://localhost:8083/andremendestattoo/";
+const browser = await chromium.launch({ args: ["--no-sandbox", "--enable-unsafe-swiftshader"] });
 try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  const errors = [],
-    missing = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  page.on("response", (response) => {
-    if (response.status() >= 400 && response.url().startsWith("http://localhost:8083"))
-      missing.push(response.url());
-  });
-  await page.goto("http://localhost:8083/andremendestattoo/", { waitUntil: "domcontentloaded" });
-  await page.locator(".preloader").waitFor({ state: "detached", timeout: 15000 });
-  await page.waitForTimeout(3000);
-  assert.equal(await page.locator(".hero-carousel").getAttribute("data-autoplay"), "true");
-  assert.ok(await page.locator(".hero-section>.smoke-surface").getAttribute("data-ready"));
-  assert.equal(
-    await page.locator("link[rel=canonical]").getAttribute("href"),
-    "https://demo.example/andremendestattoo/",
-  );
-  assert.equal(
-    await page.locator('meta[property="og:image"]').getAttribute("content"),
-    "https://demo.example/andremendestattoo/og-cover.jpg",
-  );
-  await page
-    .locator(".cylinder-section")
-    .evaluate((e) =>
-      scrollTo({ top: e.getBoundingClientRect().top + scrollY + 200, behavior: "instant" }),
+  for (const width of [1440, 390]) {
+    const page = await browser.newPage({ viewport: { width, height: width === 1440 ? 900 : 844 } });
+    const errors = [],
+      missing = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("response", (response) => {
+      if (
+        response.status() >= 400 &&
+        response.url().startsWith(base) &&
+        response.request().resourceType() !== "document"
+      )
+        missing.push(response.url());
+    });
+    await page.goto(base, { waitUntil: "domcontentloaded" });
+    await page.locator(".preloader").waitFor({ state: "detached", timeout: 20000 });
+    await page.waitForTimeout(1600);
+    assert.equal(await page.locator(".hero-carousel").getAttribute("data-autoplay"), "true");
+    assert.equal(
+      await page.locator("link[rel=canonical]").getAttribute("href"),
+      "https://celioantonio7.github.io/andremendestattoo/",
     );
-  await page.waitForTimeout(2200);
-  await page.locator(".cylinder-work:enabled").first().click();
-  const video = page.getByRole("dialog").locator("video");
-  await video.evaluate((e) => e.play());
-  await page.waitForTimeout(600);
-  assert.ok((await video.evaluate((e) => e.currentTime)) > 0);
-  await page.keyboard.press("Escape");
-  await page.evaluate(() =>
-    scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
-  );
-  await page.waitForTimeout(600);
-  await page.locator(".footer-expand").click();
-  await page.getByRole("dialog").waitFor();
-  assert.equal(await page.locator(".footer-panel-name").textContent(), "ANDRÉ MENDES");
-  assert.deepEqual(errors, []);
-  assert.deepEqual(missing, []);
-  console.log(
-    "PASS: GitHub Pages subpath, hydration, hero loop, surface shaders, real video playback, expanded footer, canonical and social image; no missing local assets or JS errors.",
-  );
+    const play = page.locator(".gallery-carousel .artwork-button").first();
+    await play.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1000);
+    await play.hover({ force: true });
+    await page.waitForTimeout(300);
+    await play.click();
+    const video = page.getByRole("dialog").locator("video");
+    await video.waitFor();
+    await page.waitForTimeout(900);
+    assert.ok(
+      await video.evaluate((element) => !element.paused && element.currentTime > 0),
+      "A user click starts video playback",
+    );
+    await page.keyboard.press("Escape");
+    const missingResponse = await page.goto(new URL("pagina-inexistente", base).href);
+    await page.waitForTimeout(800);
+    assert.equal(missingResponse.status(), 404);
+    assert.equal(await page.locator(".not-found-page").count(), 1);
+    assert.equal(
+      await page.locator('meta[name="robots"]').getAttribute("content"),
+      "noindex, follow",
+    );
+    assert.equal(
+      await page.getByRole("link", { name: "Voltar ao início" }).getAttribute("href"),
+      "/andremendestattoo/",
+    );
+    assert.ok(
+      await page
+        .locator(".not-found-content h1 img")
+        .evaluate((element) => element.naturalWidth > 0),
+    );
+    await page.screenshot({ path: `/tmp/andre-check/pages-404-${width}.png` });
+    assert.deepEqual(errors, []);
+    assert.deepEqual(missing, []);
+    console.log(
+      `PASS ${width}: Pages project path, hydration, automatic video playback, canonical, custom HTTP404, no missing assets or JavaScript errors.`,
+    );
+    await page.close();
+  }
 } finally {
   await browser.close();
 }

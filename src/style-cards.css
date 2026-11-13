@@ -1,0 +1,120 @@
+.style-grid .style-face {
+  border: 0;
+  box-shadow: none;
+  background-color: transparent;
+}
+.style-grid .style-front-art {
+  clip-path: polygon(18% 0, 98% 0, 100% 2%, 82% 98%, 79% 100%, 2% 100%, 0 98%, 16% 2%);
+}
+.style-grid .style-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 5;
+}
+.style-frame-base {
+  stroke: #d9e3e5aa;
+  stroke-width: 1;
+}
+.style-frame-light {
+  stroke: var(--style-accent);
+  stroke-width: 2;
+  opacity: 0.38;
+  transition: opacity 0.25s;
+  filter: drop-shadow(0 0 3px var(--style-accent));
+}
+.style-frame-spark {
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-dasharray: 3 97;
+  stroke-dashoffset: 12;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px var(--style-accent)) drop-shadow(0 0 8px var(--style-accent));
+}
+.style-grid .style-hover-info {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 76px 60px 30px 24px;
+  z-index: 6;
+  clip-path: polygon(5% 0, 91% 0, 82% 98%, 79% 100%, 2% 100%, 0 98%);
+}
+.style-grid .style-hover-info > span {
+  gap: 12px;
+  align-items: flex-end;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.style-front-arrow {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 1px solid var(--style-accent);
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--style-accent) 45%, transparent);
+}
+.style-grid .style-back {
+  padding: 35px 60px 35px 32px;
+  background: linear-gradient(140deg, #11161b, #070809);
+  clip-path: polygon(18% 0, 98% 0, 100% 2%, 82% 98%, 79% 100%, 2% 100%, 0 98%, 16% 2%);
+}
+.style-grid .style-back > .style-frame {
+  position: absolute;
+}
+.style-grid .style-flip-card[data-flipped="true"] .style-back .style-frame-light {
+  opacity: 1;
+}
+.style-grid .style-back h3 {
+  font-size: 30px !important;
+}
+.style-grid .style-back p {
+  font-size: 12px;
+}
+.style-grid .style-back .style-back-lead {
+  font-size: 15px;
+}
+.style-grid .style-back > a.cta {
+  min-width: 150px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .style-grid .style-front:hover .style-frame-light,
+  .style-grid .style-front:focus-visible .style-frame-light {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px var(--style-accent)) drop-shadow(0 0 9px var(--style-accent));
+  }
+  .style-grid .style-front:hover .style-frame-spark {
+    opacity: 1;
+    animation: style-frame-travel 3.5s linear infinite;
+  }
+}
+@keyframes style-frame-travel {
+  to {
+    stroke-dashoffset: -88;
+  }
+}
+@media (max-width: 899px) {
+  .style-grid .style-back {
+    gap: 12px;
+  }
+  .style-grid .style-hover-info {
+    padding-right: 65px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .style-grid .style-front:hover .style-frame-spark {
+    animation: none;
+  }
+}
+.style-grid .style-hover-info {
+  padding-right: 70px;
+}
+.style-grid .style-back {
+  padding-left: 55px;
+  padding-right: 70px;
+}

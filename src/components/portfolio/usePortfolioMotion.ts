@@ -1,9 +1,19 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
+import type { gsap as GsapType } from "gsap";
 import { motionBlocked } from "./motionActivity";
 
 export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready: boolean) {
+  const openingRef = useRef<ReturnType<typeof GsapType.timeline> | null>(null);
+  const readyRef = useRef(ready);
+  const alignInitialHashRef = useRef<() => void>(() => {});
   useEffect(() => {
-    if (!ready) return;
+    readyRef.current = ready;
+    if (ready) {
+      openingRef.current?.play();
+      alignInitialHashRef.current();
+    }
+  }, [ready]);
+  useEffect(() => {
     let disposed = false;
     let cleanup = () => {};
     void Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
@@ -13,35 +23,12 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
         const media = gsap.matchMedia();
         const ctx = gsap.context(() => {
           media.add("(prefers-reduced-motion: no-preference)", () => {
-            gsap.fromTo(
-              ".ink-seam-fill",
-              { attr: { d: "M0 45 C360 100 1080 0 1440 55 L1440 110 L0 110 Z" } },
-              {
-                attr: { d: "M0 65 C360 0 1080 110 1440 35 L1440 110 L0 110 Z" },
-                ease: "none",
-                scrollTrigger: {
-                  trigger: ".ink-seam",
-                  start: "top bottom",
-                  end: "bottom 20%",
-                  scrub: 0.7,
-                },
-              },
-            );
-            gsap.fromTo(
-              ".ink-seam-edge",
-              { attr: { d: "M0 45 C360 100 1080 0 1440 55" } },
-              {
-                attr: { d: "M0 65 C360 0 1080 110 1440 35" },
-                ease: "none",
-                scrollTrigger: {
-                  trigger: ".ink-seam",
-                  start: "top bottom",
-                  end: "bottom 20%",
-                  scrub: 0.7,
-                },
-              },
-            );
-            const opening = gsap.timeline({ defaults: { ease: "power3.out", duration: 1 } });
+            const opening = gsap.timeline({
+              paused: true,
+              defaults: { ease: "power3.out", duration: 1 },
+            });
+            openingRef.current = opening;
+            if (readyRef.current) opening.play();
             opening
               .from(".hero-energy", { opacity: 0, scaleX: 0.3, duration: 1.2 }, 0.2)
               .from(
@@ -53,13 +40,6 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
               .from(".name-mendes", { clipPath: "inset(0% 0% 0% 100%)", x: 35 }, 1)
               .from(".hero-carousel .card-reveal", { y: 45, opacity: 0, stagger: 0.08 }, 1.15)
               .from(".hero-bottom", { y: 16, opacity: 0, stagger: 0.08, duration: 0.7 }, 1.4);
-            gsap.from(".sculpture-art", {
-              clipPath: "inset(0% 100% 0% 0%)",
-              scale: 1.08,
-              duration: 1.25,
-              ease: "power3.out",
-              scrollTrigger: { trigger: ".about-sticky", start: "top 85%", once: true },
-            });
             gsap.fromTo(
               ".gallery-stage",
               { clipPath: "inset(18% 45% 18% 45% round 80px)", scale: 0.93 },
@@ -76,6 +56,7 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
               },
             );
             gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
+              if (el.closest("#sobre")) return;
               if (el.classList.contains("style-entry")) {
                 gsap.fromTo(
                   el,
@@ -215,7 +196,7 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
                   anticipatePin: 1,
                   scrub: 0.5,
                   invalidateOnRefresh: true,
-                  refreshPriority: 1,
+                  refreshPriority: 10,
                 },
               });
               process.fromTo(
@@ -258,43 +239,6 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
               // Leave reading time after the final reveal before releasing the section.
               process.to({}, { duration: 0.7 });
             }
-            const dive = gsap.timeline({
-              scrollTrigger: {
-                trigger: ".dive-sequence",
-                start: "top top",
-                end: "bottom bottom",
-                scrub: 0.8,
-              },
-            });
-            dive
-              .to(".dive-layer-1 img", { scale: 1.04, duration: 1.6, ease: "none" }, 0)
-              .fromTo(
-                ".dive-layer-2",
-                { clipPath: "inset(50% 50% 50% 50%)" },
-                { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "none" },
-                0.8,
-              )
-              .to(".dive-layer-2 img", { scale: 1.04, duration: 2, ease: "none" }, 0.8)
-              .fromTo(
-                ".dive-layer-3",
-                { clipPath: "inset(50% 50% 50% 50%)" },
-                { clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: "none" },
-                2,
-              )
-              .fromTo(
-                ".dive-layer-3 img",
-                { scale: 1.05 },
-                { scale: 1, duration: 2, ease: "none" },
-                2,
-              )
-              .to(".dive-intro", { opacity: 0, duration: 0.35 }, 1.4)
-              .fromTo(
-                ".dive-copy",
-                { opacity: 0, rotationY: -65, scale: 0.65 },
-                { opacity: 1, rotationY: 0, scale: 1, duration: 0.8, ease: "power2.out" },
-                3.2,
-              )
-              .to(".dive-shade", { backgroundColor: "rgba(8,8,8,.3)", duration: 0.8 }, 3.2);
             gsap.from(".footer-invitation", {
               y: 70,
               opacity: 0,
@@ -319,20 +263,58 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
                 },
               );
             });
-            gsap.fromTo(
-              ".about-section",
-              { clipPath: "inset(12vh 0 0 0 round 4vw)" },
-              {
-                clipPath: "inset(0vh 0 0 0 round 0vw)",
-                ease: "none",
-                scrollTrigger: {
-                  trigger: "#sobre",
-                  start: "top bottom",
-                  end: "top 18%",
-                  scrub: 0.7,
-                },
+            const storyCards = gsap.utils.toArray<HTMLElement>(".story-card");
+            const about = gsap.timeline({
+              scrollTrigger: {
+                id: "about-pin",
+                trigger: "#sobre",
+                start: "top top",
+                end: () => `+=${storyCards.length * Math.max(450, innerHeight * 0.8)}`,
+                pin: true,
+                pinSpacing: true,
+                scrub: 0.55,
+                anticipatePin: 1,
+                invalidateOnRefresh: true,
+                refreshPriority: 30,
               },
-            );
+            });
+            storyCards.forEach((card, i) => {
+              gsap.set(card, {
+                yPercent: i === 0 ? 0 : 115,
+                autoAlpha: i === 0 ? 1 : 0,
+                scale: 1,
+                rotation: 0,
+                zIndex: i + 1,
+              });
+              const underline = card.querySelector(".story-underline path");
+              if (underline) {
+                gsap.set(underline, { strokeDasharray: 1, strokeDashoffset: 1 });
+                about.to(
+                  underline,
+                  { strokeDashoffset: 0, duration: 0.65, ease: "none" },
+                  i + 0.15,
+                );
+              }
+              if (i === 0) {
+                about.to({}, { duration: 0.8 }, 0);
+                return;
+              }
+              storyCards.slice(0, i).forEach((previous, previousIndex) => {
+                about.to(
+                  previous,
+                  {
+                    y: -(i - previousIndex) * 13,
+                    x: (previousIndex % 2 ? -1 : 1) * (8 + (i - previousIndex) * 3),
+                    rotation: (previousIndex % 2 ? -1 : 1) * (0.7 + (i - previousIndex) * 0.35),
+                    duration: 0.65,
+                    ease: "none",
+                  },
+                  i,
+                );
+              });
+              about.to(card, { yPercent: 0, autoAlpha: 1, duration: 0.65, ease: "none" }, i);
+            });
+            about.to({}, { duration: 0.7 });
             media.add("(hover: hover) and (pointer: fine)", () => {
               const hero = root.current?.querySelector<HTMLElement>(".hero-section");
               const portrait = hero?.querySelector<HTMLElement>(".hero-portrait img");
@@ -384,18 +366,6 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
               };
             });
             media.add("(min-width: 900px)", () => {
-              const stack = gsap.utils.toArray<HTMLElement>(".story-card");
-              stack.forEach((card, i) => {
-                const next = stack[i + 1];
-                if (next)
-                  gsap.to(card, {
-                    scale: 0.94,
-                    opacity: 0.25,
-                    rotation: -3,
-                    ease: "none",
-                    scrollTrigger: { trigger: next, start: "top 75%", end: "top 25%", scrub: true },
-                  });
-              });
               gsap.to(".hero-portrait-inner", {
                 y: 20,
                 ease: "none",
@@ -409,13 +379,66 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
             });
           });
         }, root);
+        const initialHash = window.location.hash;
+        let initialHashDone = !/^#[\w-]+$/.test(initialHash);
+        let navigationFrame = 0;
+        let navigationRetry = 0;
+        const deadline = performance.now() + 12000;
+        const cancelInitialHash = () => {
+          initialHashDone = true;
+        };
+        const alignInitialHash = () => {
+          if (disposed || initialHashDone || !readyRef.current) return;
+          const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+          const reelsReady =
+            ScrollTrigger.getById("reels-pin") || document.querySelector(".wobble-fallback");
+          // Native hash restoration runs before asynchronous pin spacers exist.
+          // Wait for the upstream scene before locating the requested section.
+          if (!reduced && !reelsReady && performance.now() < deadline) {
+            clearTimeout(navigationRetry);
+            navigationRetry = window.setTimeout(alignInitialHash, 120);
+            return;
+          }
+          cancelAnimationFrame(navigationFrame);
+          navigationFrame = requestAnimationFrame(() => {
+            navigationFrame = requestAnimationFrame(() => {
+              if (disposed || initialHashDone) return;
+              const target = document.querySelector<HTMLElement>(initialHash);
+              if (!target) return;
+              const pin = ScrollTrigger.getAll().find(
+                (trigger) => trigger.trigger === target && trigger.pin,
+              );
+              const padding =
+                parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+              window.scrollTo({
+                top: (pin?.start ?? target.getBoundingClientRect().top + scrollY) - padding,
+                behavior: "instant",
+              });
+              initialHashDone = true;
+            });
+          });
+        };
+        alignInitialHashRef.current = alignInitialHash;
+        const interactionEvents = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
+        interactionEvents.forEach((event) =>
+          window.addEventListener(event, cancelInitialHash, { passive: true }),
+        );
+        ScrollTrigger.addEventListener("refresh", alignInitialHash);
         const refresh = () => {
           if (!disposed) ScrollTrigger.refresh();
         };
         void document.fonts.ready.then(refresh);
         window.addEventListener("load", refresh);
+        alignInitialHash();
         cleanup = () => {
           window.removeEventListener("load", refresh);
+          ScrollTrigger.removeEventListener("refresh", alignInitialHash);
+          interactionEvents.forEach((event) =>
+            window.removeEventListener(event, cancelInitialHash),
+          );
+          cancelAnimationFrame(navigationFrame);
+          clearTimeout(navigationRetry);
+          alignInitialHashRef.current = () => {};
           media.revert();
           ctx.revert();
         };
@@ -425,5 +448,5 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
       disposed = true;
       cleanup();
     };
-  }, [root, ready]);
+  }, [root]);
 }

@@ -30,7 +30,13 @@ try {
     .replace("<!-- PORTFOLIO_SEO -->", seo)
     .replace('<div id="root"></div>', `<div id="root">${markup}</div>`);
   await writeFile("dist-pages/index.html", html);
-  await writeFile("dist-pages/404.html", html);
+  const { NotFoundPage } = await server.ssrLoadModule("/src/components/portfolio/NotFoundPage.tsx");
+  const missingMarkup = renderToString(createElement(NotFoundPage));
+  const missingHtml = html
+    .replace(`<div id="root">${markup}</div>`, `<div id="root">${missingMarkup}</div>`)
+    .replace(/<title>.*?<\/title>/, "<title>Página não encontrada | André Mendes</title>")
+    .replace('content="index, follow, max-image-preview:large"', 'content="noindex, follow"');
+  await writeFile("dist-pages/404.html", missingHtml);
   await writeFile("dist-pages/.nojekyll", "");
   await writeFile(
     "dist-pages/robots.txt",

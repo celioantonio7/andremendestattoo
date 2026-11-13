@@ -7,19 +7,129 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { motionBlocked, useMotionOverlay } from "./motionActivity";
+import "@/footer-motion.css";
+import { activityEvent, motionBlocked, useMotionOverlay } from "./motionActivity";
 import { navigateToSection } from "./sectionNavigation";
 import { bookingUrl, instagramUrl, nav } from "./content";
 
 const FooterAtmosphere = lazy(() => import("./CinematicAtmosphere"));
 
 function FooterRibbons({ panel = false }: { panel?: boolean }) {
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const tracks = Array.from(el.querySelectorAll<HTMLElement>(".ribbon-track"));
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const initialRect = el.getBoundingClientRect();
+    let inView = initialRect.bottom >= -150 && initialRect.top <= innerHeight + 150;
+    let speed = 1;
+    let frame = 0;
+    let previous = 0;
+    let previousScroll = scrollY;
+    const entries: { animation: Animation; distance: number; duration: number }[] = [];
+    const sync = () => {
+      const playing = inView && !document.hidden && !motion.matches && (panel || !motionBlocked());
+      el.dataset["running"] = String(playing);
+      if (!playing) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        speed = 1;
+        entries.forEach(({ animation }) => animation.updatePlaybackRate(1));
+      }
+      entries.forEach(({ animation }) => (playing ? animation.play() : animation.pause()));
+    };
+    const measure = () => {
+      tracks.forEach((track, row) => {
+        const group = track.firstElementChild;
+        const distance = group ? parseFloat(getComputedStyle(group).width) : 0;
+        if (!distance) return;
+        const old = entries[row];
+        if (old && Math.abs(old.distance - distance) < 0.5) return;
+        const phasePixels = old
+          ? (((Number(old.animation.currentTime) || 0) % old.duration) / old.duration) *
+            old.distance
+          : 0;
+        old?.animation.cancel();
+        const duration = (distance / 55) * 1000;
+        const animation = track.animate(
+          [{ transform: "translateX(0)" }, { transform: `translateX(-${distance}px)` }],
+          {
+            duration,
+            iterations: Infinity,
+            direction: row ? "reverse" : "normal",
+            easing: "linear",
+          },
+        );
+        const visualOffset = old && row ? old.distance - phasePixels : phasePixels;
+        const nextPhase = old && row ? distance - visualOffset : phasePixels;
+        animation.currentTime =
+          ((((nextPhase % distance) + distance) % distance) / distance) * duration;
+        animation.playbackRate = speed;
+        entries[row] = { animation, distance, duration };
+      });
+      sync();
+    };
+    const decay = (now: number) => {
+      speed = 1 + (speed - 1) * Math.exp(-(now - previous) / 650);
+      previous = now;
+      entries.forEach(({ animation }) => animation.updatePlaybackRate(speed));
+      if (speed > 1.01) frame = requestAnimationFrame(decay);
+      else {
+        speed = 1;
+        entries.forEach(({ animation }) => animation.updatePlaybackRate(1));
+        frame = 0;
+      }
+    };
+    const accelerate = () => {
+      const delta = scrollY - previousScroll;
+      previousScroll = scrollY;
+      if (!inView || motion.matches || document.hidden || (!panel && motionBlocked()) || delta <= 0)
+        return;
+      speed = Math.min(5, speed + delta / 100);
+      if (!frame) {
+        previous = performance.now();
+        frame = requestAnimationFrame(decay);
+      }
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inView = !!entry?.isIntersecting;
+        sync();
+      },
+      { rootMargin: "150px 0px" },
+    );
+    const resize = new ResizeObserver(measure);
+    tracks.forEach((track) => {
+      if (track.firstElementChild) resize.observe(track.firstElementChild);
+    });
+    measure();
+    observer.observe(el);
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener(activityEvent, sync);
+    window.addEventListener("scroll", accelerate, { passive: true });
+    motion.addEventListener("change", sync);
+    return () => {
+      observer.disconnect();
+      resize.disconnect();
+      cancelAnimationFrame(frame);
+      entries.forEach(({ animation }) => animation.cancel());
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener(activityEvent, sync);
+      window.removeEventListener("scroll", accelerate);
+      motion.removeEventListener("change", sync);
+    };
+  }, [panel]);
   return (
-    <div className={panel ? "crossed-ribbons panel-ribbons" : "crossed-ribbons"} aria-hidden="true">
+    <div
+      ref={root}
+      className={`crossed-ribbons footer-live-ribbons${panel ? " panel-ribbons" : ""}`}
+      aria-hidden="true"
+    >
       {[0, 1].map((row) => (
         <div className={`ribbon ribbon-${row}`} key={row}>
           <div className="ribbon-track">
-            {[0, 1, 2, 3].map((i) => (
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
               <span key={i}>
                 REALISMO <b>•</b> ORIENTAL <b>•</b> BLACKWORK <b>•</b> ANDRÉ MENDES <b>•</b>{" "}
               </span>
@@ -36,68 +146,17 @@ export function CinematicFooter() {
   const destination = useRef<string | null>(null);
   const [open, setOpen] = useState(false);
   useMotionOverlay(open);
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      el.dataset["visible"] = String(!!entry?.isIntersecting);
-    });
-    observer.observe(el);
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let frame = 0;
-    let speed = 1;
-    let previous = performance.now();
-    let scrollY = window.scrollY;
-    const tracks = Array.from(el.querySelectorAll<HTMLElement>(".ribbon-track"));
-    const animate = (now: number) => {
-      if (document.hidden || motionBlocked() || el.dataset["visible"] !== "true") {
-        frame = 0;
-        speed = 1;
-        return;
-      }
-      speed = 1 + (speed - 1) * Math.exp(-(now - previous) / 650);
-      previous = now;
-      tracks.forEach((track) =>
-        track.getAnimations().forEach((animation) => {
-          animation.playbackRate = speed;
-        }),
-      );
-      if (speed > 1.01) frame = requestAnimationFrame(animate);
-      else frame = 0;
-    };
-    const accelerate = () => {
-      const delta = window.scrollY - scrollY;
-      scrollY = window.scrollY;
-      if (
-        document.hidden ||
-        motionBlocked() ||
-        motion.matches ||
-        el.dataset["visible"] !== "true" ||
-        delta <= 0
-      )
-        return;
-      speed = Math.min(6, speed + delta / 90);
-      if (!frame) {
-        previous = performance.now();
-        frame = requestAnimationFrame(animate);
-      }
-    };
-    window.addEventListener("scroll", accelerate, { passive: true });
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", accelerate);
-    };
-  }, []);
   return (
     <footer ref={root} className="cinematic-footer">
       <FooterRibbons />
       <div className="footer-invitation">
         <span className="eyebrow">A PRÓXIMA HISTÓRIA PODE SER A SUA.</span>
         <h2>
-          DA SUA IDEIA.
+          DA SUA <span className="footer-red-word">IDEIA.</span>
           <br />
-          <em>PARA A SUA PELE.</em>
+          <em>
+            PARA A SUA <span className="footer-red-word">PELE.</span>
+          </em>
         </h2>
         <a className="cta" href={bookingUrl} target="_blank" rel="noreferrer">
           Vamos conversar <ArrowUpRight size={22} />

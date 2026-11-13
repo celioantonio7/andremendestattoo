@@ -8,7 +8,18 @@ const criticalAssets = [
   "/art/andre-cutout.webp?v=5",
   "/art/andre-lettering.webp",
   "/art/mendes-lettering.webp",
-  ...photos.map((photo) => photo.src),
+  ...art.map((photo) => photo.src),
+  "/art/lion.webp",
+  "/art/realism-artist-reference.webp",
+  "/art/dragon.webp",
+  "/art/mandala.webp",
+  "/art/hannya.webp",
+  "/art/machine.webp",
+  "/art/sculpture.webp",
+  "/works/detail-1.webp",
+  "/works/detail-2.webp",
+  "/works/detail-3.webp",
+  "/works/detail-mask.webp",
 ];
 
 export function Preloader({ onReady }: { onReady: () => void }) {
@@ -71,8 +82,8 @@ export function Preloader({ onReady }: { onReady: () => void }) {
     const available = () => {
       if (disposed || loaded) return;
       settled++;
-      setProgress(Math.round((settled / (criticalAssets.length + 1)) * 100));
-      if (settled >= criticalAssets.length + 1) {
+      setProgress(Math.round((settled / (criticalAssets.length + 2)) * 100));
+      if (settled >= criticalAssets.length + 2) {
         loaded = true;
         maybeExit();
       }
@@ -84,7 +95,22 @@ export function Preloader({ onReady }: { onReady: () => void }) {
       image.src = src;
       return image;
     });
-    void document.fonts.ready.then(available);
+    void Promise.allSettled([
+      document.fonts.load('500 16px "Manrope"'),
+      document.fonts.load('400 32px "Flamenco"', "ANDRÉ PRECISÃO À SUA PELE"),
+      document.fonts.load('600 32px "Clash Display"', "PORTFÓLIO"),
+      document.fonts.load('700 32px "Clash Display"'),
+      document.fonts.load('italic 500 24px "Cormorant Garamond"'),
+      document.fonts.load('700 38px "Teko"', "01"),
+    ])
+      .then(() => document.fonts.ready)
+      .then(available);
+    void Promise.allSettled([
+      import("gsap"),
+      import("gsap/ScrollTrigger"),
+      import("three"),
+      import("./CinematicAtmosphere"),
+    ]).then(available);
     const timeout = setTimeout(() => {
       loaded = true;
       if (!disposed) setProgress(100);

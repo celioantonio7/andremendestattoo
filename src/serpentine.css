@@ -1,0 +1,26 @@
+/* Keep the entire curve visible at every viewport width, clear of the final CTA. */
+.detail-mosaic .serpentine-ribbon {
+  inset: 19% 0 auto;
+  height: 220px;
+  overflow: hidden;
+}
+.detail-mosaic .serpentine-ribbon svg {
+  display: block;
+  overflow: hidden;
+}
+.detail-mosaic .serpentine-ribbon text {
+  font-size: clamp(24px, 3.1vw, 44px);
+  letter-spacing: 1px;
+  stroke-width: 0.5px;
+}
+.detail-mosaic .mosaic-finale {
+  bottom: 7%;
+}
+@media (max-width: 599px) {
+  .detail-mosaic .serpentine-ribbon {
+    top: 22%;
+  }
+  .detail-mosaic .mosaic-finale h3 {
+    font-size: 35px;
+  }
+}

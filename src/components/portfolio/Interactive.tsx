@@ -10,7 +10,7 @@ import {
 import useEmblaCarousel from "embla-carousel-react";
 import AutoScroll from "embla-carousel-auto-scroll";
 import { activityEvent, motionBlocked } from "./motionActivity";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { art } from "./content";
 
 export function Tilt({
@@ -132,14 +132,20 @@ export function ArtworkCarousel({
     api.on(stopEvent, onStop);
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     let inView = false,
-      imageHovered = false;
+      imageHovered = false,
+      dragging = false;
     const sync = () => {
       if (
         !media.matches &&
         !document.hidden &&
         !motionBlocked() &&
         inView &&
-        !(window.matchMedia("(hover: hover) and (pointer: fine)").matches && imageHovered) &&
+        !dragging &&
+        !(
+          !hero &&
+          window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+          imageHovered
+        ) &&
         (hero || !root.current?.querySelector(":focus-visible"))
       ) {
         if (!autoplay.isPlaying()) autoplay.play();
@@ -151,14 +157,30 @@ export function ArtworkCarousel({
     const pointer = (event: globalThis.PointerEvent) => {
       if (event.pointerType === "touch") return;
       const node = event.target as HTMLElement;
-      imageHovered = node instanceof HTMLImageElement && !!node.closest(".artwork-button");
+      const image = node.closest(".artwork-button")?.querySelector("img");
+      const bounds = image?.getBoundingClientRect();
+      imageHovered =
+        !!bounds &&
+        event.clientX >= bounds.left &&
+        event.clientX <= bounds.right &&
+        event.clientY >= bounds.top &&
+        event.clientY <= bounds.bottom;
       sync();
     };
     const leave = () => {
       imageHovered = false;
       sync();
     };
-    api.on("pointerUp", sync);
+    const pointerDown = () => {
+      dragging = true;
+      sync();
+    };
+    const pointerUp = () => {
+      dragging = false;
+      sync();
+    };
+    api.on("pointerDown", pointerDown);
+    api.on("pointerUp", pointerUp);
     api.on("settle", sync);
     window.addEventListener(activityEvent, sync);
     const observer = new IntersectionObserver(([entry]) => {
@@ -172,10 +194,12 @@ export function ArtworkCarousel({
     const el = root.current;
     el?.addEventListener("pointermove", pointer);
     el?.addEventListener("pointerleave", leave);
+    el?.addEventListener("focusin", sync);
     el?.addEventListener("focusout", sync);
     return () => {
       api.off("select", update);
-      api.off("pointerUp", sync);
+      api.off("pointerDown", pointerDown);
+      api.off("pointerUp", pointerUp);
       api.off("settle", sync);
       window.removeEventListener(activityEvent, sync);
       api.off(playEvent, onPlay);
@@ -186,9 +210,30 @@ export function ArtworkCarousel({
       media.removeEventListener("change", sync);
       el?.removeEventListener("pointermove", pointer);
       el?.removeEventListener("pointerleave", leave);
+      el?.removeEventListener("focusin", sync);
       el?.removeEventListener("focusout", sync);
     };
   }, [api, autoplay, hero]);
+  const movePhoto = (event: PointerEvent<HTMLElement>) => {
+    if (
+      event.buttons ||
+      !window.matchMedia(
+        "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)",
+      ).matches
+    )
+      return;
+    const image = event.currentTarget.querySelector("img");
+    if (!image) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 12;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 12;
+    image.style.transition = "transform 180ms ease-out";
+    image.style.transform = `translate(${x}px, ${y}px) scale(1.07)`;
+  };
+  const resetPhoto = (event: PointerEvent<HTMLElement>) => {
+    const image = event.currentTarget.querySelector("img");
+    if (image) image.style.transform = "";
+  };
   return (
     <div
       ref={root}
@@ -219,9 +264,14 @@ export function ArtworkCarousel({
             >
               <div className="card-reveal">
                 <div className="card-drift">
-                  <Tilt disabled={hero} className={`art-card art-card-${i % 4}`}>
+                  <Tilt disabled className={`art-card art-card-${i % 4}`}>
                     {hero ? (
-                      <div className="artwork-button hero-artwork">
+                      <div
+                        className="artwork-button hero-artwork"
+                        onPointerMove={movePhoto}
+                        onPointerLeave={resetPhoto}
+                        onPointerDown={resetPhoto}
+                      >
                         <img
                           src={work.src}
                           alt={`${work.name} — trabalho de ${work.style}`}
@@ -236,8 +286,11 @@ export function ArtworkCarousel({
                         disabled={hero}
                         tabIndex={hero ? -1 : 0}
                         className="artwork-button"
+                        onPointerMove={movePhoto}
+                        onPointerLeave={resetPhoto}
+                        onPointerDown={resetPhoto}
                         onClick={(e) => onOpen?.(i % art.length, e.currentTarget)}
-                        aria-label={hero ? work.name : `Ampliar ${work.name}`}
+                        aria-label={hero ? work.name : `Assistir ${work.name}`}
                       >
                         <img
                           src={work.src}
@@ -247,6 +300,11 @@ export function ArtworkCarousel({
                           loading={hero ? "eager" : "lazy"}
                           draggable="false"
                         />
+                        {"video" in work && (
+                          <span className="video-play-glass" aria-hidden="true">
+                            <Play size={24} fill="currentColor" />
+                          </span>
+                        )}
                         {!hero && (
                           <span className="artwork-caption">
                             <span>
@@ -259,6 +317,12 @@ export function ArtworkCarousel({
                       </button>
                     )}
                   </Tilt>
+                  {!hero && (
+                    <div className="gallery-art-label">
+                      <small>{work.style}</small>
+                      <strong>{work.name}</strong>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

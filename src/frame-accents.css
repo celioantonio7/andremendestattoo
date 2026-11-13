@@ -1,0 +1,112 @@
+/* Chisel-cut framing follows the supplied tattoo artwork, behind all content. */
+.section-shell > .frame-accents {
+  --frame-accent: #ff0018;
+  --frame-counter: #00e5ff;
+  position: absolute;
+  inset: 18px 18px auto;
+  height: calc(100% - 36px);
+  max-height: 1050px;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+}
+.frame-accents.frame-accents-cyan {
+  --frame-accent: #00e5ff;
+  --frame-counter: #ff0018;
+}
+.frame-accents.frame-accents-gold {
+  --frame-accent: #ffad32;
+  --frame-counter: #ff0018;
+}
+.frame-contour {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.frame-contour path {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1;
+}
+.frame-hairline {
+  stroke: #f0e6dd50;
+}
+.frame-echo {
+  stroke: #c9cbd222;
+}
+.frame-color-line {
+  stroke: var(--frame-accent);
+  opacity: 0.64;
+}
+.frame-brush {
+  position: absolute;
+  width: clamp(130px, 23vw, 340px);
+  height: auto;
+  overflow: visible;
+}
+.frame-brush-upper {
+  top: -35px;
+  right: -36px;
+  color: var(--frame-accent);
+  opacity: 0.38;
+}
+.frame-brush-lower {
+  bottom: -25px;
+  left: -40px;
+  color: var(--frame-counter);
+  opacity: 0.3;
+}
+.frame-brush-fill {
+  fill: currentColor;
+}
+.frame-brush-cut {
+  stroke: #07080b;
+  stroke-width: 3;
+}
+.frame-brush-fleck {
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+.frame-slashes {
+  position: absolute;
+  right: 5%;
+  bottom: 16px;
+  width: 36px;
+  height: 24px;
+  stroke: #f0ece180;
+  stroke-width: 3;
+}
+.about-section > .frame-accents {
+  opacity: 0.65;
+}
+.gallery-section > .frame-accents {
+  max-height: 940px;
+}
+.process-section > .frame-accents .frame-brush-lower {
+  opacity: 0.2;
+}
+@media (max-width: 899px) {
+  .section-shell > .frame-accents {
+    inset: 14px 8px auto;
+    height: calc(100% - 28px);
+  }
+  .frame-brush-upper {
+    top: -12px;
+    right: -30px;
+    opacity: 0.26;
+  }
+  .frame-brush-lower {
+    bottom: -10px;
+    left: -35px;
+    opacity: 0.2;
+  }
+  .frame-hairline {
+    stroke: #f0e6dd35;
+  }
+  .frame-slashes {
+    width: 25px;
+    right: 7%;
+    bottom: 12px;
+  }
+}

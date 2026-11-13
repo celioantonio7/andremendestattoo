@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Content as ModalContent } from "@radix-ui/react-dialog";
 import { Menu, X } from "lucide-react";
 import {
@@ -13,6 +13,40 @@ import {
 import { useMotionOverlay } from "./motionActivity";
 import { navigateToSection } from "./sectionNavigation";
 import { nav } from "./content";
+
+function CyberLabel({ label }: { label: string }) {
+  const [text, setText] = useState(label);
+  useEffect(() => {
+    if (
+      !matchMedia("(max-width: 899px)").matches ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / 350);
+      setText(
+        [...label]
+          .map((char, i) =>
+            i < progress * label.length || char === " "
+              ? char
+              : glyphs[Math.floor(Math.random() * glyphs.length)],
+          )
+          .join(""),
+      );
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [label]);
+  return (
+    <span className="cyber-label" aria-hidden="true">
+      {text}
+    </span>
+  );
+}
 
 export function MobileNavigation({
   open,
@@ -64,6 +98,7 @@ export function MobileNavigation({
               <a
                 key={href}
                 href={href}
+                aria-label={label}
                 style={{ "--item": i } as CSSProperties}
                 onClick={(event) => {
                   event.preventDefault();
@@ -72,8 +107,7 @@ export function MobileNavigation({
                 }}
               >
                 <span className="menu-word">
-                  <span>{label}</span>
-                  <span aria-hidden="true">{label}</span>
+                  <CyberLabel label={label!} />
                 </span>
               </a>
             ))}

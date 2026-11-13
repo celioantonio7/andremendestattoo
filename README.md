@@ -1,26 +1,35 @@
-# Ink And Ember Studio
+# André Mendes — Tattoo Artist
 
-ideia e criar uma landing page para um studio de tatuagem
+Portfólio de André Mendes, tatuador em São José dos Campos. Site em português com galeria de trabalhos reais, vídeos, animações de rolagem, contato e página 404.
 
-This project was built with [Lovable](https://lovable.dev).
+## Desenvolvimento
 
-**Live app**: https://ink-and-ember-studio.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/c0a8ef49-8ed6-4509-b620-8e9d602a2f9b).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Requer Node.js 22 ou superior.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+npm ci
+npm run dev -- --host 0.0.0.0 --port 8081
 ```
+
+## Verificação
+
+```sh
+npm run lint
+npm test
+npm run build
+```
+
+## GitHub Pages
+
+O workflow `.github/workflows/pages.yml` publica a versão estática a partir da branch `main`.
+
+```sh
+VITE_SITE_URL=https://celioantonio7.github.io/andremendestattoo \
+PAGES_BASE=/andremendestattoo/ npm run build:pages
+```
+
+A saída fica em `dist-pages`, incluindo `404.html`, `robots.txt` e `sitemap.xml`. Em Settings → Pages, selecione **GitHub Actions** como origem.
+
+## Imagens e fontes
+
+Os trabalhos de tatuagem e vídeos vêm do perfil público do artista. As referências e créditos estão em `docs/real-work-sources.md`, nos arquivos `public/works/*source*.json` e `public/art/*source*.json`. As licenças das fontes locais estão em `public/fonts`.

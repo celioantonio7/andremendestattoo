@@ -33,3 +33,19 @@ Foram adicionados seis MP4 públicos do mesmo perfil, totalizando oito vídeos l
 - Letras do footer: escala e deslocamentos opostos inspirados em https://tympanus.net/Tutorials/InfiniteScrollParallax/. O fundo e a página não fazem scroll infinito.
 - Hero: Embla Auto Scroll contínuo, arraste nativo e pausa apenas ao apontar para uma imagem. A foto original recebe somente deslocamento de perspectiva pelo ponteiro.
 - Ciclo de vida: IntersectionObserver e visibilidade do documento suspendem loops e shaders; overlays suspendem a página. Reduced motion apresenta a galeria como grade estática e navegação direta.
+
+## Novos detalhes e referência do vídeo (12/11/2026)
+
+Foram examinados oito momentos do vídeo `2026-11-12 21-04-34.mp4`: um mosaico assimétrico se abre com a rolagem até a imagem central ocupar a tela. “APROXIME O OLHAR” agora usa essa composição, com alternativas estáticas para movimento reduzido.
+
+Novas fotos do perfil oficial, com os maiores candidatos disponíveis e WebP de alta qualidade, sem geração de detalhes artificiais:
+
+- `detail-1.webp`: Faith, publicação `DdKgm_spUkz`, 720 × 1280.
+- `detail-2.webp`: Itachi Uchiha, publicação `DdAIuouJJW4`, 1089 × 1936.
+- `detail-3.webp`: Onibaba/Namakubi, publicação `Dc6LjluRHpu`, 720 × 1280.
+
+As fontes canônicas e legendas estão em `public/works/detail-sources.json`. Nenhuma URL temporária de CDN é necessária em produção.
+
+“TRABALHOS EM MOVIMENTO” usa uma espiral Three.js com deformação leve dos planos, adaptando o movimento de https://github.com/Hank-D-Tank/wobble-scroll/blob/main/index.html às capas e aos vídeos locais. O scroll da página continua livre, o arraste horizontal altera a espiral, o movimento para sobre uma foto e os players só abrem depois da estabilização. Há navegação por teclado, grade para movimento reduzido/falha WebGL e descarte dos recursos ao desmontar. Não são usados os assets externos do demo.
+
+Em Sobre, o ScrollTrigger fixa a seção inteira. A escultura e seu halo não recebem parallax; os cards entram de baixo e saem por cima, sem a pilha de textos translúcidos. Legendas do portfólio ficam fora da superfície inclinada e sem lente/desfoque.
