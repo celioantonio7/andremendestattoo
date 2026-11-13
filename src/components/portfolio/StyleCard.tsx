@@ -6,25 +6,30 @@ function StyleFrame() {
   return (
     <svg
       className="style-frame"
-      viewBox="0 0 400 520"
+      viewBox="0 0 400 600"
       preserveAspectRatio="none"
       fill="none"
       aria-hidden="true"
     >
       <path
         className="style-frame-base"
-        d="M72 1H391L399 9L329 508L317 519H9L1 510L64 10Z"
+        d="M90 2H388L398 12V510L310 598H12L2 588V100Z"
         vectorEffect="non-scaling-stroke"
       />
       <path
         className="style-frame-light"
-        d="M72 1H391L399 9L329 508L317 519H9L1 510L64 10Z"
+        d="M90 2H388L398 12V510L310 598H12L2 588V100Z"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        className="style-frame-corners"
+        d="M2 112V100L90 2H154 M398 488V510L310 598H246"
         vectorEffect="non-scaling-stroke"
       />
       <path
         className="style-frame-spark"
         pathLength="100"
-        d="M72 1H391L399 9L329 508L317 519H9L1 510L64 10Z"
+        d="M90 2H388L398 12V510L310 598H12L2 588V100Z"
         vectorEffect="non-scaling-stroke"
       />
     </svg>
@@ -82,6 +87,7 @@ export function StyleCard({ style, index }: { style: Style; index: number }) {
           </span>
         </button>
         <div className="style-face style-back" aria-hidden={!flipped}>
+          <span className="style-back-art" aria-hidden="true" />
           <StyleFrame />
           <button
             ref={back}

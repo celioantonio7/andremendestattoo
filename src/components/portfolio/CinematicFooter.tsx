@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ChevronUp, Instagram, Plus } from "lucide-react";
+import { ArrowUpRight, ChevronUp, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import "@/footer-motion.css";
 import { activityEvent, motionBlocked, useMotionOverlay } from "./motionActivity";
 import { navigateToSection } from "./sectionNavigation";
 import { bookingUrl, instagramUrl, nav } from "./content";
+import { BrandIcon } from "./BrandIcon";
 
 const FooterAtmosphere = lazy(() => import("./CinematicAtmosphere"));
 
@@ -162,7 +163,7 @@ export function CinematicFooter() {
           Vamos conversar <ArrowUpRight size={22} />
         </a>
         <a className="footer-instagram" href={instagramUrl} target="_blank" rel="noreferrer">
-          <Instagram size={22} />
+          <BrandIcon brand="instagram" size={22} />
           @andremndes
         </a>
       </div>
