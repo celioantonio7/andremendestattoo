@@ -70,17 +70,6 @@ export function StyleCard({ style, index }: { style: Style; index: number }) {
               loading="eager"
             />
           </span>
-          {index !== 0 && (
-            <img
-              className="style-cutout"
-              src={style.src}
-              alt=""
-              aria-hidden="true"
-              width="512"
-              height="768"
-              loading="eager"
-            />
-          )}
           <StyleFrame />
           <span className="style-hover-info">
             <strong>{style.name}</strong>

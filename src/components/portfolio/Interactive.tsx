@@ -134,6 +134,8 @@ export function ArtworkCarousel({
     let inView = false,
       imageHovered = false,
       dragging = false;
+    let hoverFrame = 0;
+    let lastPointer: { x: number; y: number } | null = null;
     const sync = () => {
       if (
         !media.matches &&
@@ -149,25 +151,41 @@ export function ArtworkCarousel({
         (hero || !root.current?.querySelector(":focus-visible"))
       ) {
         if (!autoplay.isPlaying()) autoplay.play();
+        else api.internalEngine().animation.start();
       } else if (autoplay.isPlaying()) {
         autoplay.stop();
         api.internalEngine().animation.stop();
       }
     };
-    const pointer = (event: globalThis.PointerEvent) => {
-      if (event.pointerType === "touch") return;
-      const node = event.target as HTMLElement;
-      const image = node.closest(".artwork-button")?.querySelector("img");
+    const refreshHover = () => {
+      hoverFrame = 0;
+      const node = lastPointer ? document.elementFromPoint(lastPointer.x, lastPointer.y) : null;
+      const image = node?.closest(".artwork-button")?.querySelector("img");
       const bounds = image?.getBoundingClientRect();
       imageHovered =
         !!bounds &&
-        event.clientX >= bounds.left &&
-        event.clientX <= bounds.right &&
-        event.clientY >= bounds.top &&
-        event.clientY <= bounds.bottom;
+        !!lastPointer &&
+        lastPointer.x >= bounds.left &&
+        lastPointer.x <= bounds.right &&
+        lastPointer.y >= bounds.top &&
+        lastPointer.y <= bounds.bottom;
       sync();
     };
+    const pointer = (event: globalThis.PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      lastPointer = { x: event.clientX, y: event.clientY };
+      refreshHover();
+    };
+    const scrolled = () => {
+      if (!hero && !hoverFrame) hoverFrame = requestAnimationFrame(refreshHover);
+    };
+    const reinitialized = () => {
+      dragging = false;
+      update();
+      refreshHover();
+    };
     const leave = () => {
+      lastPointer = null;
       imageHovered = false;
       sync();
     };
@@ -182,9 +200,18 @@ export function ArtworkCarousel({
     api.on("pointerDown", pointerDown);
     api.on("pointerUp", pointerUp);
     api.on("settle", sync);
+    api.on("reInit", reinitialized);
+    window.addEventListener("scroll", scrolled, { passive: true });
+    window.addEventListener("pointerup", pointerUp);
+    window.addEventListener("pointercancel", pointerUp);
+    window.addEventListener("blur", pointerUp);
     window.addEventListener(activityEvent, sync);
     const observer = new IntersectionObserver(([entry]) => {
       inView = !!entry?.isIntersecting;
+      if (!inView) {
+        dragging = false;
+        imageHovered = false;
+      }
       if (root.current) root.current.dataset["inview"] = String(inView);
       sync();
     });
@@ -201,6 +228,12 @@ export function ArtworkCarousel({
       api.off("pointerDown", pointerDown);
       api.off("pointerUp", pointerUp);
       api.off("settle", sync);
+      api.off("reInit", reinitialized);
+      cancelAnimationFrame(hoverFrame);
+      window.removeEventListener("scroll", scrolled);
+      window.removeEventListener("pointerup", pointerUp);
+      window.removeEventListener("pointercancel", pointerUp);
+      window.removeEventListener("blur", pointerUp);
       window.removeEventListener(activityEvent, sync);
       api.off(playEvent, onPlay);
       api.off(stopEvent, onStop);

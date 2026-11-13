@@ -5,7 +5,7 @@ import { art } from "./content";
 import { activityEvent, motionBlocked, useMotionOverlay } from "./motionActivity";
 const reels = art.filter((work): work is typeof work & { video: string } => "video" in work);
 const vertex = `uniform float bend;varying vec2 uvMap;void main(){uvMap=uv;vec4 p=modelViewMatrix*vec4(position,1.);p.x+=sin(uv.y*3.14159265)*bend;gl_Position=projectionMatrix*p;}`;
-const fragment = `uniform sampler2D image;uniform vec2 crop;varying vec2 uvMap;void main(){vec2 uv=(uvMap-.5)*crop+.5;vec4 c=texture2D(image,uv);if(!gl_FrontFacing)c.rgb*=.28;gl_FragColor=c;
+const fragment = `uniform sampler2D image;uniform vec2 crop;uniform float emphasis;varying vec2 uvMap;void main(){vec2 uv=(uvMap-.5)*crop+.5;vec4 c=texture2D(image,uv);float rim=smoothstep(.47,.495,max(abs(uvMap.x-.5),abs(uvMap.y-.5)));c.rgb=mix(c.rgb,vec3(.05,.88,1.),rim*emphasis*.9);if(!gl_FrontFacing)c.rgb*=.28;gl_FragColor=c;
 #include <colorspace_fragment>
 }`;
 export function ReelShowcase() {
@@ -77,7 +77,12 @@ export function ReelShowcase() {
             vertexShader: vertex,
             fragmentShader: fragment,
             side: T.DoubleSide,
-            uniforms: { image: { value: texture }, bend, crop: { value: new T.Vector2(1, 0.75) } },
+            uniforms: {
+              image: { value: texture },
+              bend,
+              crop: { value: new T.Vector2(1, 0.75) },
+              emphasis: { value: 0 },
+            },
           });
           materials.push(material);
           const card = new T.Mesh(geometry, material);
@@ -140,6 +145,9 @@ export function ReelShowcase() {
             const angle = slot * 0.85 + Math.PI / 2;
             card.position.set(Math.cos(angle) * 1.8, slot * 0.9, Math.sin(angle) * 1.8);
             card.rotation.y = Math.PI / 2 - angle;
+            const emphasis = card.material.uniforms["emphasis"]!;
+            const active = card.userData["index"] === (keyboardIndex ?? hitIndex) ? 1 : 0;
+            emphasis.value += (active - emphasis.value) * (1 - Math.exp(-dt / 140));
           });
           renderer.render(scene, camera);
           cards.forEach((card, i) => {
@@ -177,8 +185,17 @@ export function ReelShowcase() {
           section.dataset["active"] = String(active);
           if (active) frame = requestAnimationFrame(draw);
           else {
+            // Discard interrupted drag/hover and wheel momentum while hidden;
+            // returning to a scene must not resume an old gesture or large jump.
+            drag = null;
+            moved = true;
+            keyboardIndex = null;
+            pointer.set(-10, -10);
+            updateHit(null);
+            target = rotation;
             setReady(false);
             wasReady = false;
+            section.dataset["settled"] = "false";
           }
         };
         const resize = () => {
@@ -248,13 +265,18 @@ export function ReelShowcase() {
         };
         const wheel = (event: WheelEvent) => {
           if (!inView || motionBlocked()) return;
-          target += event.deltaY * 0.004;
+          const pixels =
+            event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
+          const step = Math.max(-180, Math.min(180, pixels)) * 0.004;
+          target = rotation + Math.max(-1.2, Math.min(1.2, target - rotation + step));
           lastScroll = performance.now();
           setReady(false);
           wasReady = false;
         };
         const scrolled = () => {
           if (inView) {
+            pointer.set(-10, -10);
+            updateHit(null);
             lastScroll = performance.now();
             setReady(false);
             wasReady = false;

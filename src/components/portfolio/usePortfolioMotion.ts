@@ -40,19 +40,15 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
               .from(".name-mendes", { clipPath: "inset(0% 0% 0% 100%)", x: 35 }, 1)
               .from(".hero-carousel .card-reveal", { y: 45, opacity: 0, stagger: 0.08 }, 1.15)
               .from(".hero-bottom", { y: 16, opacity: 0, stagger: 0.08, duration: 0.7 }, 1.4);
+            // Recent work is readable immediately, even when scrolling past quickly.
             gsap.fromTo(
               ".gallery-stage",
-              { clipPath: "inset(18% 45% 18% 45% round 80px)", scale: 0.93 },
+              { y: 16 },
               {
-                clipPath: "inset(0% 0% 0% 0% round 0px)",
-                scale: 1,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: ".gallery-stage",
-                  start: "top 95%",
-                  end: "top 25%",
-                  scrub: 0.65,
-                },
+                y: 0,
+                duration: 0.22,
+                ease: "power2.out",
+                scrollTrigger: { trigger: ".gallery-stage", start: "top 105%", once: true },
               },
             );
             gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
@@ -77,14 +73,25 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
               }
               const section = el.closest("section")?.id;
               const mode = el.dataset["reveal"];
+              if (section === "portfolio") {
+                gsap.fromTo(
+                  el,
+                  { y: 16 },
+                  {
+                    y: 0,
+                    duration: 0.22,
+                    ease: "power2.out",
+                    scrollTrigger: { trigger: el, start: "top 105%", once: true },
+                  },
+                );
+                return;
+              }
               const from =
                 section === "contato"
                   ? { x: mode === "right" ? 90 : -90, clipPath: "inset(0 0 0 100%)" }
                   : section === "estilos"
                     ? { yPercent: 25, clipPath: "inset(100% 0 0 0)" }
-                    : section === "portfolio"
-                      ? { scale: 0.85, clipPath: "inset(0 50% 0 50%)" }
-                      : { y: 35, clipPath: "inset(0 0 100% 0)" };
+                    : { y: 35, clipPath: "inset(0 0 100% 0)" };
               gsap.fromTo(el, from, {
                 x: 0,
                 y: 0,
@@ -99,10 +106,13 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
             gsap.utils.toArray<HTMLElement>("main > section:not(#inicio)").forEach((section) => {
               const background = section.querySelector(".section-backdrop");
               if (!background) return;
+              if (section.id === "portfolio") {
+                gsap.set(background, { clipPath: "none", scale: 1 });
+                return;
+              }
               const states: Record<string, gsap.TweenVars> = {
                 sobre: { clipPath: "polygon(0 0,0 0,0 100%,0 100%)" },
                 estilos: { clipPath: "inset(0 0 100% 0)", scale: 1.12 },
-                portfolio: { clipPath: "circle(5% at 50% 50%)", scale: 1.16 },
                 processo: { clipPath: "inset(0 100% 0 0)" },
                 contato: { clipPath: "inset(0 0 0 100%)", xPercent: 10 },
               };
@@ -110,9 +120,7 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
                 clipPath:
                   section.id === "sobre"
                     ? "polygon(0 0,100% 0,100% 100%,0 100%)"
-                    : section.id === "portfolio"
-                      ? "circle(75% at 50% 50%)"
-                      : "inset(0 0% 0 0%)",
+                    : "inset(0 0% 0 0%)",
                 xPercent: 0,
                 scale: 1,
                 ease: "none",

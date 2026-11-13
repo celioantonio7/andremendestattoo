@@ -118,3 +118,19 @@
   padding-left: 55px;
   padding-right: 70px;
 }
+
+/* The same frame and hover treatment on both sides of every style. */
+.style-grid .style-back:hover .style-frame-light,
+.style-grid .style-back:focus-within .style-frame-light {
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--style-accent)) drop-shadow(0 0 9px var(--style-accent));
+}
+.style-grid .style-back:hover .style-frame-spark {
+  opacity: 1;
+  animation: style-frame-travel 3.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .style-grid .style-back:hover .style-frame-spark {
+    animation: none;
+  }
+}

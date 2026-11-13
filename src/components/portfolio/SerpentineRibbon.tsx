@@ -21,6 +21,7 @@ export function SerpentineRibbon() {
       velocity = 0,
       boost = 0,
       speed = 1,
+      direction = 1,
       lastY = scrollY,
       inView = false,
       period = 2200,
@@ -52,8 +53,10 @@ export function SerpentineRibbon() {
         performance.now() - lastScroll < 120 ? Math.min(12, Math.abs(velocity) * 0.003) : 0;
       bend += (tension - bend) * (1 - Math.exp(-dt / 230));
       boost *= Math.exp(-dt / 650);
-      speed += (1 + boost - speed) * (1 - Math.exp(-dt / 100));
-      phase = (phase + dt * (width < 600 ? 0.035 : 0.055) * speed) % period;
+      speed += (direction * (1 + boost) - speed) * (1 - Math.exp(-dt / 100));
+      const next = phase + dt * (width < 600 ? 0.035 : 0.055) * speed;
+      phase = ((next % period) + period) % period;
+      element.dataset["direction"] = String(direction);
       element.dataset["speed"] = speed.toFixed(3);
       velocity *= Math.exp(-dt / 120);
       const amplitude = 48 + bend;
@@ -80,18 +83,19 @@ export function SerpentineRibbon() {
       if (active) frame = requestAnimationFrame(draw);
       else {
         boost = 0;
-        speed = 1;
-        element.dataset["speed"] = "1.000";
+        speed = direction;
+        element.dataset["speed"] = speed.toFixed(3);
       }
     };
     const scrolled = () => {
       const now = performance.now();
       const elapsed = Math.max(16, Math.min(80, now - lastScroll));
-      velocity = ((scrollY - lastY) / elapsed) * 1000;
+      const delta = scrollY - lastY;
+      velocity = (delta / elapsed) * 1000;
+      if (delta !== 0) direction = delta > 0 ? 1 : -1;
       lastY = scrollY;
       lastScroll = now;
-      if (element.dataset["active"] === "true")
-        boost = Math.max(boost, Math.min(3, Math.abs(velocity) / 1400));
+      if (element.dataset["active"] === "true") boost = Math.min(3, Math.abs(velocity) / 1400);
     };
     const mutation = new MutationObserver(sync);
     mutation.observe(scene, { attributes: true, attributeFilter: ["data-expanded"] });

@@ -58,6 +58,26 @@ try {
       "Text continues while scroll is stopped",
     );
     assert.equal(await page.evaluate(() => scrollY), position);
+    await page.evaluate(() => scrollBy({ top: 100, behavior: "instant" }));
+    await page.waitForTimeout(200);
+    assert.ok(
+      Number(await page.locator(".serpentine-ribbon").getAttribute("data-speed")) > 1,
+      "Scrolling down accelerates the text forward",
+    );
+    await page.evaluate(() => scrollBy({ top: -100, behavior: "instant" }));
+    await page.waitForFunction(
+      () => Number(document.querySelector(".serpentine-ribbon")?.dataset["speed"]) < -1,
+    );
+    assert.ok(
+      Number(await page.locator(".serpentine-ribbon").getAttribute("data-speed")) < -1,
+      "Scrolling up reverses and accelerates the text",
+    );
+    await page.waitForTimeout(700);
+    assert.ok(
+      Number(await page.locator(".serpentine-ribbon").getAttribute("data-speed")) < 0,
+      "Idle text preserves the last scroll direction",
+    );
+
     await page.screenshot({ path: `/tmp/andre-check/serpentine-${width}.png` });
     const reels = await page
       .locator(".wobble-reels")
