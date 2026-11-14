@@ -49,12 +49,16 @@ try {
       height: document.documentElement.scrollHeight,
     }));
     console.log("metrics", width, metrics);
-    assert.equal(metrics.contexts, 0);
+    assert.equal(
+      metrics.contexts,
+      1,
+      "Only the low-resolution atmosphere is allocated at the hero",
+    );
     assert.equal(metrics.pins.length, 0);
     assert.ok(metrics.width <= width + 1, "No horizontal document overflow");
     assert.ok(
       !requests.some((r) => /three\.module|\/three.js/.test(r)),
-      "No Three downloaded on touch",
+      "No Three downloaded before approaching the spiral",
     );
     await p.screenshot({ path: `/tmp/andre-mobile/hero-${width}.png` });
     for (const id of ["sobre", "estilos", "duvidas", "portfolio", "processo", "contato"]) {
@@ -121,12 +125,23 @@ try {
         .first()
         .evaluate((e) => e.getBoundingClientRect().height < 1),
     );
-    assert.equal(await p.locator(".cinematic-atmosphere .atmosphere-canvas").count(), 0);
-    const rail = p.locator(".wobble-access-list");
-    await p.getByRole("button", { name: "Próximo trabalho", exact: true }).scrollIntoViewIfNeeded();
-    await p.getByRole("button", { name: "Próximo trabalho", exact: true }).tap();
-    await p.waitForTimeout(600);
-    assert.ok(await rail.evaluate((e) => e.scrollLeft > 100), "Native video carousel advances");
+    assert.equal(await p.locator(".cinematic-atmosphere .atmosphere-canvas").count(), 1);
+    const spiral = p.locator(".wobble-reels");
+    await spiral.evaluate((e) =>
+      scrollTo({ top: e.getBoundingClientRect().top + scrollY + 100, behavior: "instant" }),
+    );
+    await p.waitForFunction(
+      () => document.querySelector(".wobble-canvas")?.getAttribute("data-ready") === "true",
+    );
+    await p.waitForTimeout(700);
+    assert.ok(
+      !(await spiral.getAttribute("class")).includes("wobble-fallback"),
+      "Original spiral renderer is preserved on touch",
+    );
+    const badge = p.locator(".wobble-play-badge:not([hidden])").first();
+    await badge.waitFor({ state: "visible" });
+    const playBox = await badge.boundingBox();
+    assert.ok(playBox && playBox.x >= 0 && playBox.x + playBox.width <= width + 1);
     const steps = await p.locator(".process-card").evaluateAll((es) =>
       es.map((e) => ({
         opacity: getComputedStyle(e).opacity,
@@ -134,9 +149,7 @@ try {
       })),
     );
     assert.ok(steps.every((e) => e.opacity === "1" && e.x >= 0));
-    const play = p.locator(".wobble-access-list button").nth(1);
-    await play.scrollIntoViewIfNeeded();
-    await play.tap();
+    await p.touchscreen.tap(playBox.x + playBox.width / 2, playBox.y + playBox.height / 2);
     const video = p.getByRole("dialog").locator("video");
     await video.waitFor();
     await p.waitForTimeout(700);

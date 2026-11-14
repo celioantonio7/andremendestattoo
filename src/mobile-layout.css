@@ -365,9 +365,8 @@
   .portfolio-site .hero-edition {
     display: none;
   }
-  .portfolio-site .cinematic-atmosphere .atmosphere-canvas,
-  .portfolio-site .smoke-surface {
-    display: none;
+  .portfolio-site .cinematic-atmosphere .atmosphere-canvas {
+    display: block;
   }
   .portfolio-site .section-meta,
   .portfolio-site .editorial-heading,

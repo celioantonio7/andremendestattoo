@@ -49,15 +49,25 @@ export default function CinematicAtmosphere({
       el.dataset["ready"] = "true";
       let visible = false;
       const sync = () => {
+        el.dataset["visible"] = String(visible);
         el.dataset["active"] = String(
           visible && !document.hidden && !motion.matches && (overlay || !motionBlocked()),
         );
       };
-      const observer = new IntersectionObserver(([entry]) => {
-        visible = !!entry?.isIntersecting;
+      const visibleSections = new Set<Element>();
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) visibleSections.add(entry.target);
+          else visibleSections.delete(entry.target);
+        });
+        visible = visibleSections.size > 0;
         sync();
       });
-      if (scope) observer.observe(scope);
+      if (lightweight.matches && !overlay) {
+        document
+          .querySelectorAll("#portfolio, #processo, #contato, .cinematic-footer")
+          .forEach((section) => observer.observe(section));
+      } else if (scope) observer.observe(scope);
       window.addEventListener(activityEvent, sync);
       document.addEventListener("visibilitychange", sync);
       motion.addEventListener("change", sync);
@@ -69,8 +79,9 @@ export default function CinematicAtmosphere({
         motion.removeEventListener("change", sync);
       };
     };
-    // Mobile avoids a WebGL surface and all GPU-to-2D readbacks, including the footer overlay.
-    if (lightweight.matches || motion.matches) return cssFallback();
+    // Touch smoke uses a tiny drawing buffer and never copies into card canvases.
+    // Reduced motion and unavailable WebGL keep the static CSS alternative.
+    if (motion.matches) return cssFallback();
     const gl = el.getContext("webgl", {
       alpha: true,
       antialias: false,
@@ -104,7 +115,10 @@ export default function CinematicAtmosphere({
       return cssFallback();
     }
     gl.useProgram(program);
-    gl.uniform1f(gl.getUniformLocation(program, "intensity"), intensity);
+    gl.uniform1f(
+      gl.getUniformLocation(program, "intensity"),
+      intensity * (lightweight.matches ? 0.7 : 1),
+    );
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(
@@ -128,7 +142,7 @@ export default function CinematicAtmosphere({
       target = { x: 0.5, y: 0.5 };
     const resize = () => {
       // Half-resolution smoke keeps a single shared surface inexpensive on mobile.
-      const ratio = Math.min(window.devicePixelRatio, 1.25) * 0.65;
+      const ratio = lightweight.matches ? 0.28 : Math.min(window.devicePixelRatio, 1.25) * 0.65;
       el.width = Math.round(window.innerWidth * ratio);
       el.height = Math.round(window.innerHeight * ratio);
       gl.viewport(0, 0, el.width, el.height);
@@ -137,7 +151,7 @@ export default function CinematicAtmosphere({
     const surfaces = overlay ? null : connectSmokeSurfaces(el);
     const draw = (now: number) => {
       frame = requestAnimationFrame(draw);
-      if (now - last < 33) return;
+      if (now - last < (lightweight.matches ? 66 : 33)) return;
       if (previous) elapsed += Math.min(now - previous, 100);
       previous = now;
       last = now;
@@ -152,6 +166,7 @@ export default function CinematicAtmosphere({
     const sync = () => {
       cancelAnimationFrame(frame);
       previous = 0;
+      el.dataset["visible"] = String(inView);
       const active = !document.hidden && !motion.matches && inView && (overlay || !motionBlocked());
       el.dataset["active"] = String(active);
       if (active && !lost) frame = requestAnimationFrame(draw);
@@ -166,11 +181,20 @@ export default function CinematicAtmosphere({
       el.dataset["ready"] = "true";
       sync();
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      inView = !!entry?.isIntersecting;
+    const visibleSections = new Set<Element>();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visibleSections.add(entry.target);
+        else visibleSections.delete(entry.target);
+      });
+      inView = visibleSections.size > 0;
       sync();
     });
-    if (scope) observer.observe(scope);
+    if (lightweight.matches && !overlay) {
+      document
+        .querySelectorAll("#portfolio, #processo, #contato, .cinematic-footer")
+        .forEach((section) => observer.observe(section));
+    } else if (scope) observer.observe(scope);
     resize();
     sync();
     window.addEventListener(activityEvent, sync);

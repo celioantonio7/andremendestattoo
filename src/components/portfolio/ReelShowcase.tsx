@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Play } from "lucide-react";
+import { ArrowUpRight, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { art } from "./content";
 import { SurfaceSmoke } from "./SurfaceSmoke";
@@ -16,28 +16,55 @@ export function ReelShowcase() {
     reelList = useRef<HTMLDivElement>(null),
     player = useRef<HTMLVideoElement>(null),
     videoVisibility = useRef<IntersectionObserver | null>(null);
+  const fallbackClick = useRef(true);
   const controls = useRef<{ focus: (index: number) => void } | null>(null),
     lastTrigger = useRef<HTMLElement | null>(null);
   const [selected, setSelected] = useState<number | null>(null),
     [hovered, setHovered] = useState<number | null>(null),
     [ready, setReady] = useState(false),
     [fallback, setFallback] = useState(false),
+    [nearScene, setNearScene] = useState(false),
+    [reducedMotion, setReducedMotion] = useState<boolean | null>(null),
     [lightweight, setLightweight] = useState<boolean | null>(null);
   useMotionOverlay(selected !== null);
   useEffect(() => {
-    const media = matchMedia(
-      "(max-width: 899px), (pointer: coarse), (prefers-reduced-motion: reduce)",
+    if (lightweight === null || !root.current) return;
+    if (!lightweight) {
+      setNearScene(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setNearScene(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "1000px" },
     );
-    const update = () => setLightweight(media.matches);
+    observer.observe(root.current);
+    return () => observer.disconnect();
+  }, [lightweight]);
+  useEffect(() => {
+    const media = matchMedia("(max-width: 899px), (pointer: coarse)");
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => {
+      setLightweight(media.matches);
+      setReducedMotion(reduced.matches);
+    };
     update();
     media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
+    reduced.addEventListener("change", update);
+    return () => {
+      media.removeEventListener("change", update);
+      reduced.removeEventListener("change", update);
+    };
   }, []);
   useEffect(() => {
-    // Decide before importing Three or allocating any renderer/textures. Touch
-    // devices keep the same playable videos through the native HTML list.
-    if (lightweight === null) return;
-    if (lightweight) {
+    // Wait until touch visitors approach the scene before allocating textures.
+    // The same helix uses fewer planes and a smaller drawing buffer on phones.
+    if (lightweight === null || reducedMotion === null || !nearScene) return;
+    if (reducedMotion) {
       setFallback(true);
       setReady(true);
       return;
@@ -59,22 +86,22 @@ export function ReelShowcase() {
         }
         let renderer: InstanceType<typeof T.WebGLRenderer>;
         try {
-          renderer = new T.WebGLRenderer({ canvas: el, alpha: true, antialias: true });
+          renderer = new T.WebGLRenderer({ canvas: el, alpha: true, antialias: !lightweight });
         } catch {
           setFallback(true);
           setReady(true);
           return;
         }
-        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.4));
+        renderer.setPixelRatio(Math.min(devicePixelRatio, lightweight ? 1 : 1.4));
         const scene = new T.Scene(),
           camera = new T.PerspectiveCamera(35, 1, 0.1, 100);
-        camera.position.z = 8;
+        camera.position.z = lightweight ? 8.8 : 8;
         const geometry = new T.PlaneGeometry(1.35, 1.8, 1, 20),
           loader = new T.TextureLoader(),
           bend = { value: 0 };
         const textures: InstanceType<typeof T.Texture>[] = [],
           materials: InstanceType<typeof T.ShaderMaterial>[] = [];
-        const cards = Array.from({ length: reels.length * 2 }, (_, i) => {
+        const cards = Array.from({ length: reels.length * (lightweight ? 1 : 2) }, (_, i) => {
           let texture = textures[i % reels.length];
           if (!texture) {
             texture = loader.load(reels[i % reels.length]!.src, (loaded) => {
@@ -84,6 +111,19 @@ export function ReelShowcase() {
               }
               const image = loaded.image as HTMLImageElement;
               const aspect = image.width / image.height;
+              if (lightweight && Math.max(image.width, image.height) > 768) {
+                const resized = document.createElement("canvas");
+                const scale = 768 / Math.max(image.width, image.height);
+                resized.width = Math.round(image.width * scale);
+                resized.height = Math.round(image.height * scale);
+                const context = resized.getContext("2d");
+                if (context) {
+                  context.drawImage(image, 0, 0, resized.width, resized.height);
+                  const source: { data: TexImageSource } = loaded.source;
+                  source.data = resized;
+                  loaded.needsUpdate = true;
+                }
+              }
               materials.forEach((material) => {
                 if (material.uniforms["image"]!.value === loaded)
                   material.uniforms["crop"]!.value.set(
@@ -154,6 +194,7 @@ export function ReelShowcase() {
           Math.abs(target - rotation) < 0.012 && performance.now() - lastScroll > 180 && !drag;
         const draw = (now: number) => {
           frame = requestAnimationFrame(draw);
+          if (lightweight && previous && now - previous < 1000 / 30) return;
           const dt = previous ? Math.min(now - previous, 50) : 16.7;
           previous = now;
           if (hitIndex === null && keyboardIndex === null && !drag) target += dt * 0.0003;
@@ -165,7 +206,8 @@ export function ReelShowcase() {
             const count = cards.length;
             const slot = ((((i - rotation) % count) + count) % count) - count / 2;
             const angle = slot * 0.85 + Math.PI / 2;
-            card.position.set(Math.cos(angle) * 1.8, slot * 0.9, Math.sin(angle) * 1.8);
+            const radius = lightweight ? 1.2 : 1.8;
+            card.position.set(Math.cos(angle) * radius, slot * 0.9, Math.sin(angle) * radius);
             card.rotation.y = Math.PI / 2 - angle;
             const emphasis = card.material.uniforms["emphasis"]!;
             const active = card.userData["index"] === (keyboardIndex ?? hitIndex) ? 1 : 0;
@@ -229,19 +271,21 @@ export function ReelShowcase() {
           renderer.setSize(rect.width, rect.height, false);
         };
         resize();
-        const pin = ScrollTrigger.create({
-          id: "reels-pin",
-          trigger: section,
-          start: "top top",
-          end: () => `+=${innerHeight * 1.8}`,
-          pin: el.parentElement,
-          pinSpacing: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          // Refresh upstream pins first so their spacer height reaches the Process scene.
-          refreshPriority: 20,
-        });
-        ScrollTrigger.refresh();
+        const pin = lightweight
+          ? null
+          : ScrollTrigger.create({
+              id: "reels-pin",
+              trigger: section,
+              start: "top top",
+              end: () => `+=${innerHeight * 1.8}`,
+              pin: el.parentElement,
+              pinSpacing: true,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              // Refresh upstream pins first so their spacer height reaches the Process scene.
+              refreshPriority: 20,
+            });
+        if (pin) ScrollTrigger.refresh();
         const observer = new IntersectionObserver(([entry]) => {
           inView = !!entry?.isIntersecting;
           sync();
@@ -297,6 +341,17 @@ export function ReelShowcase() {
         };
         const scrolled = () => {
           if (inView) {
+            if (lightweight) {
+              const progress = Math.max(
+                0,
+                Math.min(
+                  1,
+                  -section.getBoundingClientRect().top /
+                    Math.max(1, section.offsetHeight - innerHeight),
+                ),
+              );
+              target = progress * reels.length;
+            }
             pointer.set(-10, -10);
             updateHit(null);
             lastScroll = performance.now();
@@ -330,7 +385,7 @@ export function ReelShowcase() {
           event.preventDefault();
           contextLost = true;
           cancelAnimationFrame(frame);
-          pin.kill();
+          pin?.kill();
           section.dataset["active"] = "false";
           setFallback(true);
           fallbackFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
@@ -353,7 +408,7 @@ export function ReelShowcase() {
           cancelAnimationFrame(frame);
           cancelAnimationFrame(fallbackFrame);
           observer.disconnect();
-          pin.kill();
+          pin?.kill();
           controls.current = null;
           el.removeEventListener("pointermove", point);
           el.removeEventListener("pointerdown", down);
@@ -379,7 +434,142 @@ export function ReelShowcase() {
       disposed = true;
       cleanup();
     };
-  }, [lightweight]);
+  }, [lightweight, nearScene, reducedMotion]);
+  useEffect(() => {
+    if (!fallback || !root.current || !reelList.current) return;
+    const section = root.current,
+      list = reelList.current;
+    const buttons = Array.from(list.querySelectorAll<HTMLButtonElement>("button"));
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0,
+      previous = 0,
+      rotation = 0,
+      target = 0,
+      visible = false;
+    let hovered = false,
+      lastScroll = 0,
+      lastY = scrollY;
+    let drag: { x: number; y: number; target: number } | null = null;
+    let height = 1,
+      scale = 1;
+    const resize = () => {
+      const rect = list.getBoundingClientRect();
+      height = rect.height;
+      const distance = lightweight ? 8.8 : 8;
+      const focal = height / (2 * Math.tan((35 * Math.PI) / 360));
+      scale = focal / distance;
+      list.style.perspective = `${focal}px`;
+      buttons.forEach((button) => {
+        button.style.width = `${1.35 * scale}px`;
+        button.style.height = `${1.8 * scale}px`;
+      });
+    };
+    const paint = (now: number) => {
+      frame = requestAnimationFrame(paint);
+      if (previous && now - previous < 33) return;
+      const dt = previous ? Math.min(now - previous, 50) : 16.7;
+      previous = now;
+      if (!reduced.matches && !drag && !hovered) target += dt * 0.0003;
+      rotation += (target - rotation) * (1 - Math.exp(-dt / 100));
+      buttons.forEach((button, i) => {
+        const slot =
+          ((((i - rotation) % buttons.length) + buttons.length) % buttons.length) -
+          buttons.length / 2;
+        const angle = slot * 0.85 + Math.PI / 2;
+        const radius = lightweight ? 1.2 : 1.8;
+        button.style.transform = `translate(-50%, -50%) translate3d(${Math.cos(angle) * radius * scale}px, ${-slot * 0.9 * scale}px, ${Math.sin(angle) * radius * scale}px) rotateY(${Math.PI / 2 - angle}rad)`;
+        button.style.visibility =
+          Math.abs(slot * 0.9 * scale) > height * 0.9 ? "hidden" : "visible";
+      });
+      section.dataset["renderer"] = "css-3d";
+    };
+    const sync = () => {
+      cancelAnimationFrame(frame);
+      previous = 0;
+      const active = visible && !document.hidden && !motionBlocked();
+      section.dataset["active"] = String(active);
+      if (active) frame = requestAnimationFrame(paint);
+      else {
+        drag = null;
+        hovered = false;
+        target = rotation;
+      }
+    };
+    const down = (event: PointerEvent) => {
+      fallbackClick.current = performance.now() - lastScroll > 180;
+      drag = { x: event.clientX, y: event.clientY, target: rotation };
+      target = rotation;
+    };
+    const move = (event: PointerEvent) => {
+      if (!drag) {
+        hovered = event.pointerType !== "touch" && !!(event.target as Element).closest("button");
+        if (hovered) target = rotation;
+        return;
+      }
+      const dx = event.clientX - drag.x,
+        dy = event.clientY - drag.y;
+      if (Math.hypot(dx, dy) > 8) fallbackClick.current = false;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) {
+        target = drag.target - dx * 0.008;
+        if (!list.hasPointerCapture(event.pointerId)) list.setPointerCapture(event.pointerId);
+      }
+    };
+    const up = (event: PointerEvent) => {
+      drag = null;
+      if (list.hasPointerCapture(event.pointerId)) list.releasePointerCapture(event.pointerId);
+    };
+    const leave = () => {
+      if (!drag) hovered = false;
+    };
+    const scroll = () => {
+      const delta = scrollY - lastY;
+      lastY = scrollY;
+      if (visible && !motionBlocked() && !reduced.matches) {
+        target += Math.max(-180, Math.min(180, delta)) * 0.004;
+        lastScroll = performance.now();
+        hovered = false;
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = !!entry?.isIntersecting;
+      sync();
+    });
+    observer.observe(list);
+    const size = new ResizeObserver(resize);
+    size.observe(list);
+    resize();
+    controls.current = {
+      focus: (index) => {
+        target =
+          index -
+          buttons.length / 2 +
+          Math.round((rotation - index + buttons.length / 2) / buttons.length) * buttons.length;
+        hovered = true;
+      },
+    };
+    list.addEventListener("pointerdown", down);
+    list.addEventListener("pointermove", move);
+    list.addEventListener("pointerup", up);
+    list.addEventListener("pointercancel", up);
+    list.addEventListener("pointerleave", leave);
+    window.addEventListener("scroll", scroll, { passive: true });
+    window.addEventListener(activityEvent, sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      size.disconnect();
+      controls.current = null;
+      list.removeEventListener("pointerdown", down);
+      list.removeEventListener("pointermove", move);
+      list.removeEventListener("pointerup", up);
+      list.removeEventListener("pointercancel", up);
+      list.removeEventListener("pointerleave", leave);
+      window.removeEventListener("scroll", scroll);
+      window.removeEventListener(activityEvent, sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [fallback, lightweight]);
   useEffect(() => {
     const hide = () => {
       if (document.hidden) player.current?.pause();
@@ -392,20 +582,10 @@ export function ReelShowcase() {
     };
   }, [selected]);
   const item = selected === null ? null : reels[selected];
-  const moveReels = (direction: number) => {
-    const list = reelList.current;
-    const card = list?.firstElementChild as HTMLElement | null;
-    if (!list || !card) return;
-    const gap = parseFloat(getComputedStyle(list).columnGap) || 0;
-    list.scrollBy({
-      left: direction * (card.offsetWidth + gap),
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
-    });
-  };
   return (
     <div
       ref={root}
-      className={`wobble-reels ${fallback ? "wobble-fallback" : ""}`}
+      className={`wobble-reels ${fallback ? "wobble-fallback" : ""} ${lightweight ? "wobble-touch" : ""}`}
       id="trabalhos-em-movimento"
     >
       <div className="wobble-stage">
@@ -414,8 +594,8 @@ export function ReelShowcase() {
         <div className="wobble-heading">
           <h2 id="gallery-title">TRABALHOS RECENTES</h2>
           <p>
-            {fallback
-              ? "Deslize para explorar. Toque para assistir."
+            {lightweight
+              ? "Role ou arraste para explorar. Toque para assistir."
               : "Role ou arraste para explorar. Clique para assistir."}
           </p>
         </div>
@@ -459,9 +639,11 @@ export function ReelShowcase() {
               key={work.src}
               aria-label={`Assistir: ${work.name}`}
               tabIndex={fallback ? 0 : -1}
-              onFocus={() => controls.current?.focus(i)}
+              onFocus={(event) => {
+                if (event.currentTarget.matches(":focus-visible")) controls.current?.focus(i);
+              }}
               onClick={(event) => {
-                if (!ready && !fallback) return;
+                if ((!ready && !fallback) || (fallback && !fallbackClick.current)) return;
                 lastTrigger.current = event.currentTarget;
                 setSelected(i);
               }}
@@ -474,27 +656,6 @@ export function ReelShowcase() {
             </button>
           ))}
         </div>
-        {fallback && (
-          <div className="native-reel-controls" aria-label="Navegar pelos trabalhos">
-            <span>Arraste para descobrir</span>
-            <button
-              type="button"
-              aria-label="Trabalho anterior"
-              aria-controls="recent-video-carousel"
-              onClick={() => moveReels(-1)}
-            >
-              <ArrowLeft size={21} />
-            </button>
-            <button
-              type="button"
-              aria-label="Próximo trabalho"
-              aria-controls="recent-video-carousel"
-              onClick={() => moveReels(1)}
-            >
-              <ArrowRight size={21} />
-            </button>
-          </div>
-        )}
       </div>
       <Dialog
         open={selected !== null}

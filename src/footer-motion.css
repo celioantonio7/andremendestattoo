@@ -14,3 +14,8 @@
     will-change: auto;
   }
 }
+/* Keep the diagonal edges antialiased without changing the original bands. */
+.footer-live-ribbons .ribbon {
+  backface-visibility: hidden;
+  outline: 1px solid transparent;
+}

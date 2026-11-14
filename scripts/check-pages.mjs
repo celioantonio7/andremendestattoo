@@ -31,9 +31,18 @@ try {
     assert.equal(await page.locator(".gallery-carousel").count(), 0);
     assert.equal(await page.locator(".portfolio-faq-item").count(), 5);
     if (width < 900) {
-      const play = page.locator(".wobble-access-list button").first();
-      await play.scrollIntoViewIfNeeded();
-      await play.tap();
+      await page
+        .locator(".wobble-reels")
+        .evaluate((e) =>
+          scrollTo({ top: e.getBoundingClientRect().top + scrollY + 100, behavior: "instant" }),
+        );
+      await page.waitForFunction(
+        () => document.querySelector(".wobble-canvas")?.getAttribute("data-ready") === "true",
+      );
+      await page.waitForTimeout(800);
+      const badge = await page.locator(".wobble-play-badge:not([hidden])").first().boundingBox();
+      assert.ok(badge, "The spiral exposes a glass play button on touch");
+      await page.touchscreen.tap(badge.x + badge.width / 2, badge.y + badge.height / 2);
     } else {
       const canvas = page.locator(".wobble-canvas");
       await canvas.scrollIntoViewIfNeeded();
