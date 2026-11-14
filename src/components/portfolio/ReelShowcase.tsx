@@ -19,9 +19,28 @@ export function ReelShowcase() {
   const [selected, setSelected] = useState<number | null>(null),
     [hovered, setHovered] = useState<number | null>(null),
     [ready, setReady] = useState(false),
-    [fallback, setFallback] = useState(false);
+    [fallback, setFallback] = useState(false),
+    [lightweight, setLightweight] = useState<boolean | null>(null);
   useMotionOverlay(selected !== null);
   useEffect(() => {
+    const media = matchMedia(
+      "(max-width: 899px), (pointer: coarse), (prefers-reduced-motion: reduce)",
+    );
+    const update = () => setLightweight(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    // Decide before importing Three or allocating any renderer/textures. Touch
+    // devices keep the same playable videos through the native HTML list.
+    if (lightweight === null) return;
+    if (lightweight) {
+      setFallback(true);
+      setReady(true);
+      return;
+    }
+    setFallback(false);
     let disposed = false,
       cleanup = () => {};
     void Promise.all([import("three"), import("gsap"), import("gsap/ScrollTrigger")]).then(
@@ -358,7 +377,7 @@ export function ReelShowcase() {
       disposed = true;
       cleanup();
     };
-  }, []);
+  }, [lightweight]);
   useEffect(() => {
     const hide = () => {
       if (document.hidden) player.current?.pause();
@@ -379,10 +398,14 @@ export function ReelShowcase() {
     >
       <div className="wobble-stage">
         <div className="motion-section-art" aria-hidden="true" />
-        <SurfaceSmoke />
+        {lightweight === false && <SurfaceSmoke />}
         <div className="wobble-heading">
           <h2 id="gallery-title">TRABALHOS RECENTES</h2>
-          <p>Role ou arraste para explorar. Aponte para uma imagem para assistir.</p>
+          <p>
+            {fallback
+              ? "Toque em um trabalho para assistir ao vídeo."
+              : "Role ou arraste para explorar. Aponte para uma imagem para assistir."}
+          </p>
         </div>
         <canvas
           ref={canvas}
@@ -423,7 +446,7 @@ export function ReelShowcase() {
                 setSelected(i);
               }}
             >
-              <img src={work.src} alt="" />
+              <img src={work.src} alt="" width="512" height="768" loading="lazy" decoding="async" />
               <span>{work.name}</span>
               <span className="video-play-glass" aria-hidden="true">
                 <Play size={24} fill="currentColor" />

@@ -1,9 +1,12 @@
 export function SurfaceSmoke() {
-  return <canvas className="smoke-surface" aria-hidden="true" />;
+  return <canvas className="smoke-surface" width={1} height={1} aria-hidden="true" />;
 }
 
 // Reuse one WebGL scene on visible surfaces; no extra shader contexts or frame loops.
 export function connectSmokeSurfaces(source: HTMLCanvasElement) {
+  // A CSS edge light replaces readback copies on touch devices and narrow screens.
+  if (matchMedia("(max-width: 899px), (pointer: coarse)").matches)
+    return { draw() {}, destroy() {} };
   const surfaces = Array.from(document.querySelectorAll<HTMLCanvasElement>(".smoke-surface"));
   const visible = new Set<HTMLCanvasElement>();
   const observer = new IntersectionObserver((entries) => {

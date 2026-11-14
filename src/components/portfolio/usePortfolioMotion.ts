@@ -20,9 +20,11 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
       ([{ gsap }, { ScrollTrigger }]) => {
         if (disposed || !root.current) return;
         gsap.registerPlugin(ScrollTrigger);
+        const desktopMotion =
+          "(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
         const media = gsap.matchMedia();
         const ctx = gsap.context(() => {
-          media.add("(prefers-reduced-motion: no-preference)", () => {
+          media.add(desktopMotion, () => {
             const opening = gsap.timeline({
               paused: true,
               defaults: { ease: "power3.out", duration: 1 },
@@ -129,7 +131,12 @@ export function usePortfolioMotion(root: RefObject<HTMLDivElement | null>, ready
                 {
                   y: -distance,
                   ease: "none",
-                  scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: 1 },
+                  scrollTrigger: {
+                    trigger: el,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: 1,
+                  },
                 },
               );
             });

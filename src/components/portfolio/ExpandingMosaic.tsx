@@ -11,9 +11,11 @@ export function ExpandingMosaic({ items, title }: { items: MosaicItem[]; title: 
       ([{ gsap }, { ScrollTrigger }]) => {
         if (disposed || !root.current) return;
         gsap.registerPlugin(ScrollTrigger);
+        const desktopMotion =
+          "(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
         const scene = root.current,
           media = gsap.matchMedia();
-        media.add("(prefers-reduced-motion: no-preference)", () => {
+        media.add(desktopMotion, () => {
           const context = gsap.context(() => {
             const timeline = gsap.timeline({
               onUpdate: () => {

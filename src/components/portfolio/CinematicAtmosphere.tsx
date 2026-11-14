@@ -40,13 +40,44 @@ export default function CinematicAtmosphere({
     const el = canvas.current;
     if (!el) return;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (motion.matches) return;
+    const scope = overlay ? el.closest(".footer-panel") : document.querySelector(".portfolio-site");
+    const lightweight = window.matchMedia("(max-width: 899px), (pointer: coarse)");
+    const cssFallback = () => {
+      el.width = 1;
+      el.height = 1;
+      el.dataset["renderer"] = "css";
+      el.dataset["ready"] = "true";
+      let visible = false;
+      const sync = () => {
+        el.dataset["active"] = String(
+          visible && !document.hidden && !motion.matches && (overlay || !motionBlocked()),
+        );
+      };
+      const observer = new IntersectionObserver(([entry]) => {
+        visible = !!entry?.isIntersecting;
+        sync();
+      });
+      if (scope) observer.observe(scope);
+      window.addEventListener(activityEvent, sync);
+      document.addEventListener("visibilitychange", sync);
+      motion.addEventListener("change", sync);
+      sync();
+      return () => {
+        observer.disconnect();
+        window.removeEventListener(activityEvent, sync);
+        document.removeEventListener("visibilitychange", sync);
+        motion.removeEventListener("change", sync);
+      };
+    };
+    // Mobile avoids a WebGL surface and all GPU-to-2D readbacks, including the footer overlay.
+    if (lightweight.matches || motion.matches) return cssFallback();
     const gl = el.getContext("webgl", {
       alpha: true,
       antialias: false,
       powerPreference: "low-power",
     });
-    if (!gl) return;
+    if (!gl) return cssFallback();
+    el.dataset["renderer"] = "webgl";
     const shaders: WebGLShader[] = [];
     const compile = (kind: number, source: string) => {
       const s = gl.createShader(kind);
@@ -62,7 +93,7 @@ export default function CinematicAtmosphere({
     if (!vs || !fs || !program) {
       shaders.forEach((s) => gl.deleteShader(s));
       if (program) gl.deleteProgram(program);
-      return;
+      return cssFallback();
     }
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
@@ -70,7 +101,7 @@ export default function CinematicAtmosphere({
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       shaders.forEach((s) => gl.deleteShader(s));
       gl.deleteProgram(program);
-      return;
+      return cssFallback();
     }
     gl.useProgram(program);
     gl.uniform1f(gl.getUniformLocation(program, "intensity"), intensity);
@@ -121,26 +152,24 @@ export default function CinematicAtmosphere({
     const sync = () => {
       cancelAnimationFrame(frame);
       previous = 0;
-      const active =
-        !document.hidden && !motion.matches && !lost && inView && (overlay || !motionBlocked());
+      const active = !document.hidden && !motion.matches && inView && (overlay || !motionBlocked());
       el.dataset["active"] = String(active);
-      if (active) frame = requestAnimationFrame(draw);
+      if (active && !lost) frame = requestAnimationFrame(draw);
     };
     const pointer = (e: globalThis.PointerEvent) => {
       target.x = e.clientX / window.innerWidth;
       target.y = 1 - e.clientY / window.innerHeight;
     };
-    const contextLost = (e: Event) => {
-      e.preventDefault();
+    const contextLost = () => {
       lost = true;
-      el.dataset["ready"] = "false";
+      el.dataset["renderer"] = "css";
+      el.dataset["ready"] = "true";
       sync();
     };
     const observer = new IntersectionObserver(([entry]) => {
       inView = !!entry?.isIntersecting;
       sync();
     });
-    const scope = overlay ? el.closest(".footer-panel") : document.querySelector(".portfolio-site");
     if (scope) observer.observe(scope);
     resize();
     sync();
@@ -165,5 +194,7 @@ export default function CinematicAtmosphere({
       gl.deleteProgram(program);
     };
   }, [intensity, overlay]);
-  return <canvas ref={canvas} className="atmosphere-canvas" aria-hidden="true" />;
+  return (
+    <canvas ref={canvas} width={1} height={1} className="atmosphere-canvas" aria-hidden="true" />
+  );
 }

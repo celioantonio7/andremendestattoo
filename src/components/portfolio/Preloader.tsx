@@ -37,7 +37,9 @@ export function Preloader({ onReady }: { onReady: () => void }) {
     let context: ReturnType<typeof GsapType.context> | undefined;
     let sequence: ReturnType<typeof GsapType.timeline> | undefined;
     let exit: ReturnType<typeof GsapType.timeline> | undefined;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const compact = window.matchMedia("(max-width: 899px), (pointer: coarse)").matches;
+    const reduce = compact || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const assets = compact ? criticalAssets.slice(0, 7) : criticalAssets;
     const maybeExit = () => {
       if (disposed || exiting || !loaded || !sequenceDone) return;
       exiting = true;
@@ -85,13 +87,13 @@ export function Preloader({ onReady }: { onReady: () => void }) {
     const available = () => {
       if (disposed || loaded) return;
       settled++;
-      setProgress(Math.round((settled / (criticalAssets.length + 2)) * 100));
-      if (settled >= criticalAssets.length + 2) {
+      setProgress(Math.round((settled / (assets.length + 2)) * 100));
+      if (settled >= assets.length + 2) {
         loaded = true;
         maybeExit();
       }
     };
-    const images = criticalAssets.map((src) => {
+    const images = assets.map((src) => {
       const image = new Image();
       image.onload = available;
       image.onerror = available;
@@ -111,7 +113,7 @@ export function Preloader({ onReady }: { onReady: () => void }) {
     void Promise.allSettled([
       import("gsap"),
       import("gsap/ScrollTrigger"),
-      import("three"),
+      ...(compact ? [] : [import("three")]),
       import("./CinematicAtmosphere"),
     ]).then(available);
     const timeout = setTimeout(() => {

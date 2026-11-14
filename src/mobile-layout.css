@@ -1,0 +1,344 @@
+/* Touch layouts use native document scrolling, without desktop pin spacers. */
+@media (max-width: 899px), (pointer: coarse) {
+  html {
+    scroll-behavior: auto;
+  }
+  .portfolio-site .section-shell {
+    padding: 48px 6% 56px;
+    min-height: 0;
+  }
+  .portfolio-site .section-meta {
+    margin-bottom: 28px;
+    gap: 12px;
+    font-size: 8px;
+  }
+  .portfolio-site .section-meta > span:nth-child(2) {
+    text-align: right;
+  }
+  .portfolio-site .editorial-heading {
+    display: block;
+    margin-bottom: 30px;
+  }
+  .portfolio-site .editorial-heading > p {
+    padding: 0;
+    margin: 22px 0 0;
+    border: 0;
+    max-width: 32ch;
+    font:
+      14px/1.6 "Manrope",
+      sans-serif;
+  }
+  .portfolio-site .editorial-heading h2 {
+    font-size: clamp(34px, 9vw, 56px) !important;
+    line-height: 1.1;
+  }
+  .portfolio-site .brush-decoration {
+    display: none;
+  }
+  .portfolio-site .about-layout {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+  .portfolio-site .about-sticky {
+    position: relative;
+    top: auto;
+    height: 340px;
+    min-height: 0;
+    max-height: none;
+    margin-bottom: 28px;
+  }
+  .portfolio-site .about-heading {
+    position: relative;
+    z-index: 2;
+  }
+  .portfolio-site .about-heading h2 {
+    font-size: clamp(44px, 13vw, 74px) !important;
+    line-height: 1;
+  }
+  .portfolio-site .about-sticky .sculpture-wrap {
+    position: absolute;
+    inset: 0 0 0 12%;
+    width: 88%;
+    height: 100%;
+  }
+  .portfolio-site .story-stack {
+    position: relative;
+    display: grid;
+    gap: 22px;
+    height: auto;
+    overflow: visible;
+    padding: 0;
+  }
+  .portfolio-site .story-card:nth-child(n) {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+  .portfolio-site .story-inner {
+    height: auto;
+    min-height: 330px;
+    padding: 30px 25px;
+  }
+  .portfolio-site .story-inner h3 {
+    font-size: 32px;
+    margin: 18px 0;
+    line-height: 1.1;
+  }
+  .portfolio-site .story-lead {
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .portfolio-site .story-inner .progressive-text {
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .portfolio-site .reveal-word {
+    opacity: 1;
+  }
+  .portfolio-site .style-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin: 0;
+    padding: 0;
+  }
+  .portfolio-site .style-entry:nth-child(n) {
+    margin: 0;
+    transform: none;
+  }
+  .portfolio-site .style-entry::after {
+    display: none;
+  }
+  .portfolio-site .style-grid .style-flip-card {
+    width: min(100%, 390px);
+    height: 535px;
+    margin: 0 auto;
+  }
+  .portfolio-site .style-grid .style-back {
+    padding: 52px 26px 60px;
+    gap: 16px;
+  }
+  .portfolio-site .style-grid .style-back h3 {
+    font-size: clamp(27px, 8vw, 36px) !important;
+  }
+  .portfolio-site .section-footnote {
+    margin-top: 30px;
+    line-height: 1.7;
+    letter-spacing: 0.12em;
+  }
+  .portfolio-site .process-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    width: 100%;
+    margin: 28px 0 0;
+    padding: 0;
+    transform: none;
+  }
+  .portfolio-site .process-card:nth-of-type(n) {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    margin: 0;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+  .portfolio-site .process-surface {
+    min-height: 290px;
+    height: auto;
+    padding: 26px;
+  }
+  .portfolio-site .process-surface .step-top {
+    margin: 0 0 22px;
+  }
+  .portfolio-site .step-top > span:not(.step-icon-frame) {
+    font-size: 76px;
+    line-height: 1;
+  }
+  .portfolio-site .process-surface h3 {
+    font-size: 32px;
+  }
+  .portfolio-site .process-surface p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .portfolio-site .process-line {
+    display: none;
+  }
+  .portfolio-site .process-section .editorial-heading > p {
+    display: block;
+  }
+  .portfolio-site .process-note {
+    margin-top: 24px;
+  }
+  .portfolio-site .gallery-section {
+    padding: 0 6% 40px;
+  }
+  .portfolio-site .wobble-reels {
+    height: auto;
+    margin: 0 -6.8% 40px;
+  }
+  .portfolio-site .wobble-fallback .wobble-stage {
+    padding: 42px 6% 30px;
+    min-height: 0;
+  }
+  .portfolio-site .wobble-heading {
+    position: relative;
+    inset: auto;
+  }
+  .portfolio-site .wobble-heading h2 {
+    font-size: clamp(28px, 8vw, 42px);
+  }
+  .portfolio-site .wobble-fallback .wobble-access-list,
+  .portfolio-site .wobble-fallback .wobble-access-list:not(:focus-within) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .portfolio-site .wobble-access-list button {
+    position: relative;
+    border: 1px solid #00d9ef65;
+    border-radius: 8px;
+    background: #080d12;
+  }
+  .portfolio-site .wobble-access-list img {
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+  .portfolio-site .wobble-access-list button > span:not(.video-play-glass) {
+    padding: 12px 10px 0;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .portfolio-site .expanding-mosaic.detail-mosaic {
+    height: auto;
+    margin: 25px -6.8% 0;
+  }
+  .portfolio-site .detail-mosaic .mosaic-stage {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 0;
+    padding: 32px 6%;
+    overflow: hidden;
+  }
+  .portfolio-site .mosaic-heading {
+    position: relative;
+    inset: auto;
+    margin: 0 0 25px;
+    transform: none;
+    opacity: 1;
+  }
+  .portfolio-site .mosaic-heading h3 {
+    font-size: 30px;
+  }
+  .portfolio-site .mosaic-layout {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    height: auto;
+    width: 100%;
+  }
+  .portfolio-site .mosaic-card:nth-child(n) {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    transform: none;
+    opacity: 1;
+    border-radius: 8px;
+    aspect-ratio: 3/4;
+  }
+  .portfolio-site .mosaic-card.mosaic-focus {
+    grid-column: 1 / -1;
+    max-height: 540px;
+    aspect-ratio: 3/4;
+  }
+  .portfolio-site .mosaic-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .portfolio-site .mosaic-card.mosaic-focus img {
+    object-fit: contain;
+    background: #080c10;
+  }
+  .portfolio-site .mosaic-finale {
+    position: relative;
+    inset: auto;
+    margin-top: 30px;
+    transform: none;
+    opacity: 1;
+    text-align: center;
+  }
+  .portfolio-site .detail-mosaic .serpentine-ribbon,
+  .portfolio-site .mosaic-scroll {
+    display: none;
+  }
+  .portfolio-site .contact-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .portfolio-site .contact-art {
+    min-height: 300px;
+  }
+  .portfolio-site .frame-accents {
+    opacity: 0.4;
+  }
+  .portfolio-site .style-frame-spark {
+    animation: none !important;
+  }
+  .portfolio-site .section-backdrop {
+    opacity: 0.3;
+  }
+  .portfolio-site .cta,
+  .portfolio-site .header-booking,
+  .portfolio-site .footer-panel {
+    backdrop-filter: none;
+  }
+}
+@media (max-width: 899px), (pointer: coarse) {
+  .portfolio-site .editorial-heading > p br {
+    display: block;
+  }
+  .portfolio-site .hero-specialties {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 7px;
+    white-space: normal;
+    font-size: 9px;
+    line-height: 1.5;
+  }
+  .portfolio-site .step-icon-frame {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+  }
+  .portfolio-site .step-icon-frame .icon-brackets {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .portfolio-site .step-icon-frame > svg:not(.icon-brackets) {
+    position: relative;
+    width: 28px;
+    height: 28px;
+  }
+}

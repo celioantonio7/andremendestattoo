@@ -13,6 +13,7 @@ export function SerpentineRibbon() {
       letters = textPath.current;
     const scene = element?.closest<HTMLElement>(".detail-mosaic");
     if (!element || !curve || !letters || !scene) return;
+    if (matchMedia("(max-width: 899px), (pointer: coarse)").matches) return;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0,
       previous = 0,
@@ -30,7 +31,10 @@ export function SerpentineRibbon() {
     let lastScroll = performance.now();
     const measure = () => {
       if (disposed) return;
-      const measured = text.current?.getSubStringLength(0, phrase.length * 2);
+      const node = text.current;
+      const count = Math.min(node?.getNumberOfChars() ?? 0, phrase.length * 2);
+      if (!node || count === 0) return;
+      const measured = node.getSubStringLength(0, count);
       if (measured && measured > 0) {
         phase = (phase / period) * measured;
         period = measured;

@@ -4,7 +4,11 @@ const base = process.env["CHECK_BASE_URL"] || "http://localhost:8083/andremendes
 const browser = await chromium.launch({ args: ["--no-sandbox", "--enable-unsafe-swiftshader"] });
 try {
   for (const width of [1440, 390]) {
-    const page = await browser.newPage({ viewport: { width, height: width === 1440 ? 900 : 844 } });
+    const page = await browser.newPage({
+      viewport: { width, height: width === 1440 ? 900 : 844 },
+      hasTouch: width < 900,
+      isMobile: width < 900,
+    });
     const errors = [],
       missing = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -26,15 +30,21 @@ try {
     );
     assert.equal(await page.locator(".gallery-carousel").count(), 0);
     assert.equal(await page.locator(".portfolio-faq-item").count(), 5);
-    const canvas = page.locator(".wobble-canvas");
-    await canvas.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(1100);
-    await canvas.focus();
-    await canvas.press("ArrowRight");
-    await page.waitForFunction(
-      () => document.querySelector(".wobble-reels")?.getAttribute("data-settled") === "true",
-    );
-    await canvas.press("Enter");
+    if (width < 900) {
+      const play = page.locator(".wobble-access-list button").first();
+      await play.scrollIntoViewIfNeeded();
+      await play.tap();
+    } else {
+      const canvas = page.locator(".wobble-canvas");
+      await canvas.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(1100);
+      await canvas.focus();
+      await canvas.press("ArrowRight");
+      await page.waitForFunction(
+        () => document.querySelector(".wobble-reels")?.getAttribute("data-settled") === "true",
+      );
+      await canvas.press("Enter");
+    }
     const video = page.getByRole("dialog").locator("video");
     await video.waitFor();
     await page.waitForTimeout(900);
