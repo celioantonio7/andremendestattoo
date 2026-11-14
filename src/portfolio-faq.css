@@ -33,20 +33,42 @@
   pointer-events: none;
   background: linear-gradient(45deg, transparent 46%, var(--faq-accent) 48% 52%, transparent 54%);
 }
-.portfolio-faq-item summary {
+.portfolio-faq-item button {
   display: flex;
   align-items: center;
   gap: 20px;
   min-height: 88px;
   padding: 23px 28px;
-  list-style: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   border-radius: 0;
 }
-.portfolio-faq-item summary::-webkit-details-marker {
-  display: none;
+.portfolio-faq-heading {
+  margin: 0;
+  font: inherit;
 }
-.portfolio-faq-item summary:focus-visible {
+.portfolio-faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    visibility 220ms;
+}
+.portfolio-faq-item[data-open="true"] .portfolio-faq-panel {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+.portfolio-faq-panel-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.portfolio-faq-item button:focus-visible {
   outline: 2px solid var(--faq-accent);
   outline-offset: 5px;
 }
@@ -69,10 +91,10 @@
   color: var(--faq-accent);
   transition: transform 220ms ease;
 }
-.portfolio-faq-item[open] .portfolio-faq-plus {
+.portfolio-faq-item[data-open="true"] .portfolio-faq-plus {
   transform: rotate(45deg);
 }
-.portfolio-faq-item[open] {
+.portfolio-faq-item[data-open="true"] {
   border-color: var(--faq-accent);
   box-shadow: 0 0 17px color-mix(in srgb, var(--faq-accent) 12%, transparent);
 }
@@ -116,7 +138,7 @@
   .portfolio-faq {
     padding: 20px 0 45px;
   }
-  .portfolio-faq-item summary {
+  .portfolio-faq-item button {
     min-height: 85px;
     gap: 12px;
     padding: 20px 16px;
@@ -135,7 +157,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .portfolio-faq-item,
-  .portfolio-faq-plus {
+  .portfolio-faq-plus,
+  .portfolio-faq-panel {
     transition: none;
   }
 }

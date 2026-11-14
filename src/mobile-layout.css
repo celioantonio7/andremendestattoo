@@ -1,4 +1,4 @@
-/* Touch layouts use native document scrolling, without desktop pin spacers. */
+/* Touch layouts use native scrolling and CSS sticky stacks, without desktop pin spacers. */
 @media (max-width: 899px), (pointer: coarse) {
   html {
     scroll-behavior: auto;
@@ -340,5 +340,238 @@
     position: relative;
     width: 28px;
     height: 28px;
+  }
+}
+
+/* Keep labels above the portrait and text inside the usable screen width. */
+@media (max-width: 899px), (pointer: coarse) {
+  .portfolio-site .hero-topline {
+    z-index: 12;
+    top: max(96px, env(safe-area-inset-top));
+    left: 6%;
+    right: 6%;
+  }
+  .portfolio-site .hero-topline .tiny-label {
+    width: fit-content;
+    max-width: 100%;
+    padding: 6px 10px;
+    color: #fff;
+    background: #080c12e8;
+    border-left: 2px solid #ff002c;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    line-height: 1.5;
+  }
+  .portfolio-site .hero-edition {
+    display: none;
+  }
+  .portfolio-site .cinematic-atmosphere .atmosphere-canvas,
+  .portfolio-site .smoke-surface {
+    display: none;
+  }
+  .portfolio-site .section-meta,
+  .portfolio-site .editorial-heading,
+  .portfolio-site .about-heading,
+  .portfolio-site .process-grid {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .portfolio-site .section-meta > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .portfolio-site .section-meta > span:first-child {
+    flex-shrink: 0;
+  }
+  .portfolio-site .editorial-heading h2 {
+    width: 100%;
+    max-width: 100%;
+    font-size: clamp(27px, 7.5vw, 52px) !important;
+    line-height: 1.2 !important;
+    transform: none;
+    clip-path: none;
+  }
+  .portfolio-site .editorial-heading h2 em {
+    display: block;
+  }
+  .portfolio-site .about-sticky {
+    height: 390px;
+    margin-bottom: 12px;
+  }
+  .portfolio-site .about-heading h2 {
+    margin-top: 18px;
+    font-size: clamp(42px, 12vw, 72px) !important;
+    line-height: 1.12 !important;
+  }
+  .portfolio-site .about-sticky .sculpture-wrap {
+    inset: 65px 0 0 12%;
+    height: auto;
+  }
+  .portfolio-site .about-signature {
+    bottom: 0;
+    font-size: 8px;
+    letter-spacing: 0.16em;
+  }
+  .portfolio-site .story-stack {
+    display: block;
+    padding-bottom: 20px;
+  }
+  .portfolio-site .story-card:nth-child(n) {
+    margin-bottom: 28px;
+    filter: none;
+  }
+  .portfolio-site .story-card:last-child {
+    margin-bottom: 0;
+  }
+  .portfolio-site .story-inner {
+    background-color: #090d12;
+    min-height: 355px;
+  }
+  .portfolio-site .story-inner h3 {
+    font-size: clamp(27px, 7.5vw, 36px);
+  }
+  .portfolio-site .story-inner .progressive-text {
+    color: #d1d4db;
+  }
+  .portfolio-site .process-card:nth-of-type(n) {
+    filter: none;
+  }
+  .portfolio-site .process-surface {
+    background-color: #090d12;
+  }
+  .portfolio-site .process-surface h3 {
+    overflow-wrap: anywhere;
+    font-size: 30px;
+  }
+  .portfolio-site .process-section .editorial-heading > p {
+    margin-top: 20px;
+  }
+  .portfolio-site .about-section,
+  .portfolio-site .process-section {
+    scroll-margin-top: 90px;
+  }
+  .footer-panel.footer-panel {
+    box-sizing: border-box;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: max(66px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right))
+      max(28px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+  }
+  .footer-panel.footer-panel .footer-panel-links {
+    width: 100%;
+    grid-template-columns: 1fr;
+    flex-shrink: 0;
+    gap: 28px;
+    margin-top: 28px;
+  }
+  .footer-panel.footer-panel .footer-panel-links > div:last-child {
+    display: block;
+  }
+  .footer-panel.footer-panel .footer-panel-links a {
+    font-size: 15px;
+    min-height: 44px;
+  }
+  .footer-panel.footer-panel .footer-panel-links p {
+    font-size: 13px;
+  }
+  .footer-panel.footer-panel .footer-panel-identity {
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+    margin-top: 32px;
+    padding: 0 0 12px;
+  }
+  .footer-panel.footer-panel .footer-panel-name {
+    width: 100%;
+    max-width: 100%;
+    font-size: clamp(25px, 7.2vw, 64px);
+    line-height: 1.25 !important;
+    white-space: normal;
+    overflow-wrap: normal;
+    margin: 14px 0 0;
+  }
+  .footer-panel.footer-panel .footer-panel-logo {
+    width: 140px;
+    height: auto;
+    max-height: none;
+  }
+}
+/* Native sticky preserves the stack without a JS scroll loop or pin spacer.
+   Short landscape viewports use document flow so every card remains readable. */
+@media (min-height: 600px) and (prefers-reduced-motion: no-preference) {
+  @media (max-width: 899px), (pointer: coarse) {
+    .portfolio-site .story-card:nth-child(n),
+    .portfolio-site .process-card:nth-of-type(n) {
+      position: sticky;
+      top: 76px;
+    }
+    .portfolio-site .story-card:nth-child(2),
+    .portfolio-site .process-card:nth-of-type(2) {
+      top: 84px;
+    }
+    .portfolio-site .story-card:nth-child(3),
+    .portfolio-site .process-card:nth-of-type(3) {
+      top: 92px;
+    }
+    .portfolio-site .story-card:nth-child(4),
+    .portfolio-site .process-card:nth-of-type(4) {
+      top: 100px;
+    }
+    .portfolio-site .story-card:nth-child(5) {
+      top: 108px;
+    }
+  }
+}
+@media (max-width: 899px), (pointer: coarse) {
+  /* Desktop scenes are one viewport tall. Touch content must define its own
+     section height, otherwise the following section paints over the stack. */
+  .portfolio-site main > section:not(.hero-section) {
+    display: block;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+}
+/* Fit the full word within the desktop title column instead of under card 1. */
+@media (min-width: 1200px) and (pointer: fine) {
+  .portfolio-site .styles-section .editorial-heading {
+    container-type: inline-size;
+  }
+  .portfolio-site .styles-section .editorial-heading h2 {
+    font-size: clamp(28px, 18cqi, 62px) !important;
+  }
+}
+@media (max-width: 899px), (pointer: coarse) {
+  .footer-panel.footer-panel {
+    padding-top: max(112px, calc(env(safe-area-inset-top) + 90px));
+  }
+  .footer-panel.footer-panel .footer-panel-links > div:last-child {
+    grid-column: auto;
+  }
+  .footer-panel.footer-panel .footer-panel-atmosphere {
+    position: fixed;
+    inset: 0;
+  }
+  .footer-panel.footer-panel .footer-panel-name {
+    font-size: clamp(24px, 6.7vw, 60px);
+    letter-spacing: 0.01em;
+    word-spacing: 0.14em;
+  }
+  .portfolio-site .native-reel-controls {
+    padding-bottom: 60px;
+  }
+}
+@media (max-width: 899px), (pointer: coarse) {
+  .footer-panel.footer-panel > button:last-child {
+    position: fixed;
+    top: max(88px, calc(env(safe-area-inset-top) + 76px));
+    right: max(16px, env(safe-area-inset-right));
+    z-index: 5;
+    width: 44px;
+    height: 44px;
   }
 }

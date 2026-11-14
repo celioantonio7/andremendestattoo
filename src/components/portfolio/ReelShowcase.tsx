@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { art } from "./content";
 import { SurfaceSmoke } from "./SurfaceSmoke";
 import { activityEvent, motionBlocked, useMotionOverlay } from "./motionActivity";
+import "./reel-carousel.css";
 const reels = art.filter((work): work is typeof work & { video: string } => "video" in work);
 const vertex = `uniform float bend;varying vec2 uvMap;void main(){uvMap=uv;vec4 p=modelViewMatrix*vec4(position,1.);p.x+=sin(uv.y*3.14159265)*bend;gl_Position=projectionMatrix*p;}`;
 const fragment = `uniform sampler2D image;uniform vec2 crop;uniform float emphasis;varying vec2 uvMap;void main(){vec2 uv=(uvMap-.5)*crop+.5;vec4 c=texture2D(image,uv);float rim=smoothstep(.47,.495,max(abs(uvMap.x-.5),abs(uvMap.y-.5)));c.rgb=mix(c.rgb,vec3(.05,.88,1.),rim*emphasis*.9);if(!gl_FrontFacing)c.rgb*=.28;gl_FragColor=c;
@@ -12,6 +13,7 @@ const fragment = `uniform sampler2D image;uniform vec2 crop;uniform float emphas
 export function ReelShowcase() {
   const root = useRef<HTMLDivElement>(null),
     canvas = useRef<HTMLCanvasElement>(null),
+    reelList = useRef<HTMLDivElement>(null),
     player = useRef<HTMLVideoElement>(null),
     videoVisibility = useRef<IntersectionObserver | null>(null);
   const controls = useRef<{ focus: (index: number) => void } | null>(null),
@@ -390,6 +392,16 @@ export function ReelShowcase() {
     };
   }, [selected]);
   const item = selected === null ? null : reels[selected];
+  const moveReels = (direction: number) => {
+    const list = reelList.current;
+    const card = list?.firstElementChild as HTMLElement | null;
+    if (!list || !card) return;
+    const gap = parseFloat(getComputedStyle(list).columnGap) || 0;
+    list.scrollBy({
+      left: direction * (card.offsetWidth + gap),
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
+  };
   return (
     <div
       ref={root}
@@ -403,8 +415,8 @@ export function ReelShowcase() {
           <h2 id="gallery-title">TRABALHOS RECENTES</h2>
           <p>
             {fallback
-              ? "Toque em um trabalho para assistir ao vídeo."
-              : "Role ou arraste para explorar. Aponte para uma imagem para assistir."}
+              ? "Deslize para explorar. Toque para assistir."
+              : "Role ou arraste para explorar. Clique para assistir."}
           </p>
         </div>
         <canvas
@@ -434,10 +446,18 @@ export function ReelShowcase() {
             </span>
           ))}
         </div>
-        <div className="wobble-access-list" aria-label="Escolher trabalho em vídeo">
+        <div
+          ref={reelList}
+          id="recent-video-carousel"
+          className="wobble-access-list"
+          role={fallback ? "region" : undefined}
+          aria-roledescription={fallback ? "carrossel" : undefined}
+          aria-label="Escolher trabalho em vídeo"
+        >
           {reels.map((work, i) => (
             <button
               key={work.src}
+              aria-label={`Assistir: ${work.name}`}
               tabIndex={fallback ? 0 : -1}
               onFocus={() => controls.current?.focus(i)}
               onClick={(event) => {
@@ -454,6 +474,27 @@ export function ReelShowcase() {
             </button>
           ))}
         </div>
+        {fallback && (
+          <div className="native-reel-controls" aria-label="Navegar pelos trabalhos">
+            <span>Arraste para descobrir</span>
+            <button
+              type="button"
+              aria-label="Trabalho anterior"
+              aria-controls="recent-video-carousel"
+              onClick={() => moveReels(-1)}
+            >
+              <ArrowLeft size={21} />
+            </button>
+            <button
+              type="button"
+              aria-label="Próximo trabalho"
+              aria-controls="recent-video-carousel"
+              onClick={() => moveReels(1)}
+            >
+              <ArrowRight size={21} />
+            </button>
+          </div>
+        )}
       </div>
       <Dialog
         open={selected !== null}

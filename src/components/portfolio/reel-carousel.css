@@ -1,0 +1,63 @@
+/* Native scrolling keeps touch gestures independent of the animation renderer. */
+.portfolio-site .wobble-reels.wobble-fallback .wobble-access-list,
+.portfolio-site .wobble-reels.wobble-fallback .wobble-access-list:not(:focus-within) {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
+  padding: 6px 2px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: #00d9ef66 transparent;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.portfolio-site .wobble-reels.wobble-fallback .wobble-access-list > button {
+  flex: 0 0 min(76%, 310px);
+  scroll-snap-align: start;
+  scroll-margin-inline: 2px;
+  border-radius: 12px;
+}
+.portfolio-site .wobble-reels.wobble-fallback .wobble-access-list > button > img {
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  pointer-events: none;
+}
+.native-reel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+.native-reel-controls > span {
+  margin-right: auto;
+  color: #c7ced0;
+  font-size: 12px;
+}
+.native-reel-controls > button {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border: 1px solid #9bdce766;
+  border-radius: 50%;
+  background: #ffffff0d;
+  color: #fff;
+}
+.native-reel-controls > button:focus-visible {
+  outline: 2px solid #00d9ef;
+  outline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .native-reel-controls > button:hover {
+    background: #00d9ef26;
+    border-color: #00d9ef;
+  }
+}

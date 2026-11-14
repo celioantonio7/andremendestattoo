@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { bookingUrl } from "./content";
 import "@/portfolio-faq.css";
@@ -34,43 +34,66 @@ const questions = [
 export function PortfolioFAQ() {
   const id = useId();
   const root = useRef<HTMLDivElement>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   useEffect(() => {
     const node = root.current;
     let frame = 0;
     let disposed = false;
-    const refresh = () => {
+    const desktopMotion = window.matchMedia(
+      "(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)",
+    );
+    const refresh = (event: TransitionEvent) => {
+      if (!desktopMotion.matches || event.propertyName !== "grid-template-rows") return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         void import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
-          if (!disposed) ScrollTrigger.refresh();
+          if (!disposed && desktopMotion.matches) ScrollTrigger.refresh();
         });
       });
     };
-    // Native toggle does not bubble. Measure downstream pins after the answer's
-    // final layout, including when opening one answer closes another.
-    node?.addEventListener("toggle", refresh, true);
+    // Touch layouts use native document flow: refreshing desktop pins while an
+    // answer changes size can reset the scroll position on mobile browsers.
+    node?.addEventListener("transitionend", refresh);
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
-      node?.removeEventListener("toggle", refresh, true);
+      node?.removeEventListener("transitionend", refresh);
     };
   }, []);
   return (
     <div ref={root} className="portfolio-faq">
       <div className="portfolio-faq-list">
         {questions.map(({ question, answer }, index) => (
-          <details className="portfolio-faq-item" name={`${id}-questions`} key={question}>
-            <summary>
-              <span className="portfolio-faq-number" aria-hidden="true">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span className="portfolio-faq-question">{question}</span>
-              <Plus className="portfolio-faq-plus" size={21} aria-hidden="true" />
-            </summary>
-            <div className="portfolio-faq-answer">
-              <p>{answer}</p>
+          <div className="portfolio-faq-item" data-open={openIndex === index} key={question}>
+            <h3 className="portfolio-faq-heading">
+              <button
+                type="button"
+                id={`${id}-question-${index}`}
+                aria-expanded={openIndex === index}
+                aria-controls={`${id}-answer-${index}`}
+                onClick={() => setOpenIndex((current) => (current === index ? null : index))}
+              >
+                <span className="portfolio-faq-number" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="portfolio-faq-question">{question}</span>
+                <Plus className="portfolio-faq-plus" size={21} aria-hidden="true" />
+              </button>
+            </h3>
+            <div
+              className="portfolio-faq-panel"
+              id={`${id}-answer-${index}`}
+              role="region"
+              aria-labelledby={`${id}-question-${index}`}
+              inert={openIndex !== index}
+            >
+              <div className="portfolio-faq-panel-inner">
+                <div className="portfolio-faq-answer">
+                  <p>{answer}</p>
+                </div>
+              </div>
             </div>
-          </details>
+          </div>
         ))}
       </div>
       <a className="portfolio-faq-contact" href={bookingUrl} target="_blank" rel="noreferrer">

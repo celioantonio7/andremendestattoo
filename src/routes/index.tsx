@@ -225,12 +225,18 @@ function Index() {
   useSectionActivity(root, sceneReady);
   useHeaderVisibility(root, menuOpen);
   useEffect(() => {
-    setCanvasMounted(true);
+    const desktop = matchMedia("(min-width: 900px) and (pointer: fine)");
+    const updateAtmosphere = () => setCanvasMounted(desktop.matches);
+    updateAtmosphere();
+    desktop.addEventListener("change", updateAtmosphere);
     const visibility = () => {
       if (root.current) root.current.dataset["hidden"] = String(document.hidden);
     };
     document.addEventListener("visibilitychange", visibility);
-    return () => document.removeEventListener("visibilitychange", visibility);
+    return () => {
+      desktop.removeEventListener("change", updateAtmosphere);
+      document.removeEventListener("visibilitychange", visibility);
+    };
   }, []);
   useEffect(() => {
     const observer = new IntersectionObserver(
