@@ -634,9 +634,9 @@ export function ReelShowcase() {
           aria-roledescription={fallback ? "carrossel" : undefined}
           aria-label="Escolher trabalho em vídeo"
         >
-          {reels.map((work, i) => (
+          {(fallback && !lightweight ? [...reels, ...reels] : reels).map((work, i) => (
             <button
-              key={work.src}
+              key={`${work.src}-${i}`}
               aria-label={`Assistir: ${work.name}`}
               tabIndex={fallback ? 0 : -1}
               onFocus={(event) => {
@@ -645,7 +645,7 @@ export function ReelShowcase() {
               onClick={(event) => {
                 if ((!ready && !fallback) || (fallback && !fallbackClick.current)) return;
                 lastTrigger.current = event.currentTarget;
-                setSelected(i);
+                setSelected(i % reels.length);
               }}
             >
               <img src={work.src} alt="" width="512" height="768" loading="lazy" decoding="async" />

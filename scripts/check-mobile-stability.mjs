@@ -68,6 +68,11 @@ try {
           scrollTo({ top: e.getBoundingClientRect().top + scrollY, behavior: "instant" }),
         );
       await p.waitForTimeout(250);
+      assert.equal(
+        await p.locator(".cinematic-atmosphere canvas").getAttribute("data-active"),
+        "true",
+        `The global shader remains active in ${id}`,
+      );
       await p.screenshot({ path: `/tmp/andre-mobile/${id}-${width}.png` });
     }
     await p.evaluate(() => scrollTo(0, 0));

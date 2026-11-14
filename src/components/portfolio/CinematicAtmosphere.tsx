@@ -63,11 +63,7 @@ export default function CinematicAtmosphere({
         visible = visibleSections.size > 0;
         sync();
       });
-      if (lightweight.matches && !overlay) {
-        document
-          .querySelectorAll("#portfolio, #processo, #contato, .cinematic-footer")
-          .forEach((section) => observer.observe(section));
-      } else if (scope) observer.observe(scope);
+      if (scope) observer.observe(scope);
       window.addEventListener(activityEvent, sync);
       document.addEventListener("visibilitychange", sync);
       motion.addEventListener("change", sync);
@@ -190,11 +186,7 @@ export default function CinematicAtmosphere({
       inView = visibleSections.size > 0;
       sync();
     });
-    if (lightweight.matches && !overlay) {
-      document
-        .querySelectorAll("#portfolio, #processo, #contato, .cinematic-footer")
-        .forEach((section) => observer.observe(section));
-    } else if (scope) observer.observe(scope);
+    if (scope) observer.observe(scope);
     resize();
     sync();
     window.addEventListener(activityEvent, sync);
