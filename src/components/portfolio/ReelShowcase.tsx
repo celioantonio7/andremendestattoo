@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { art } from "./content";
+import { SurfaceSmoke } from "./SurfaceSmoke";
 import { activityEvent, motionBlocked, useMotionOverlay } from "./motionActivity";
 const reels = art.filter((work): work is typeof work & { video: string } => "video" in work);
 const vertex = `uniform float bend;varying vec2 uvMap;void main(){uvMap=uv;vec4 p=modelViewMatrix*vec4(position,1.);p.x+=sin(uv.y*3.14159265)*bend;gl_Position=projectionMatrix*p;}`;
@@ -378,6 +379,7 @@ export function ReelShowcase() {
     >
       <div className="wobble-stage">
         <div className="motion-section-art" aria-hidden="true" />
+        <SurfaceSmoke />
         <div className="wobble-heading">
           <h2 id="gallery-title">TRABALHOS RECENTES</h2>
           <p>Role ou arraste para explorar. Aponte para uma imagem para assistir.</p>

@@ -145,3 +145,79 @@
     font-size: 17px;
   }
 }
+/* The video stage owns its backdrop, so scrolling its parent cannot move it. */
+.portfolio-site .wobble-stage {
+  background: #04090c;
+}
+.wobble-stage > .motion-section-art {
+  background:
+    linear-gradient(#04090c55, #04090c55),
+    url("/art/styles-floor.webp") center / cover no-repeat;
+  opacity: 0.85;
+  mask-image: none;
+}
+.wobble-stage > .smoke-surface {
+  z-index: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+@media (min-width: 1200px) {
+  .portfolio-site .styles-section {
+    padding-top: 32px;
+    padding-bottom: 28px;
+  }
+  .styles-section > .section-meta {
+    margin-bottom: 28px;
+  }
+  .styles-section > .section-footnote {
+    margin-top: 24px;
+  }
+  .portfolio-site .styles-section .style-flip-card {
+    height: clamp(430px, calc(100svh - 215px), 550px);
+  }
+  .styles-section .style-back {
+    padding-top: 45px;
+    padding-bottom: 50px;
+    gap: 14px;
+  }
+}
+@media (min-width: 1000px) and (max-width: 1199px) {
+  .portfolio-site .styles-section {
+    padding-top: 25px;
+    padding-bottom: 25px;
+  }
+  .styles-section > .section-meta {
+    margin-bottom: 22px;
+  }
+  .styles-section > .editorial-heading {
+    margin-bottom: 22px;
+  }
+  .styles-section .editorial-heading h2 {
+    font-size: 42px !important;
+  }
+  .styles-section > .style-grid {
+    margin-top: 0;
+    padding-bottom: 15px;
+  }
+  .portfolio-site .styles-section .style-flip-card {
+    height: 510px;
+  }
+  .styles-section > .section-footnote {
+    margin-top: 25px;
+  }
+  .styles-section .style-back {
+    padding: 45px 23px 48px;
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .portfolio-site .styles-section {
+    min-height: 100svh;
+  }
+}
+@media (min-width: 1200px) {
+  .portfolio-site .styles-section {
+    align-content: center;
+  }
+}

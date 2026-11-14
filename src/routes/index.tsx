@@ -528,7 +528,6 @@ function Index() {
           className="gallery-section section-shell"
           aria-labelledby="gallery-title"
         >
-          <SectionBackdrop left="/works/work-4.webp" right="/works/work-8.webp" />
           <FrameAccents tone="cyan" />
           <ReelShowcase />
           <DiveSequence />
